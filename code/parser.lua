@@ -6,7 +6,7 @@ require("scanner")
 --
 -- Apply the Scheme function 'func'
 --
-function applyFunction(func)
+local function applyFunction(func)
     local funcName = func
     if forms.syntax[func] then
         return forms.syntax[func]()

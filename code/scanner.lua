@@ -6,7 +6,7 @@ local tokenCache
 --
 -- Return true if 'x' is a whitespace character
 --
-function isWhiteSpace(x)
+local function isWhiteSpace(x)
     return string.match(x, "^[%s]$")
 end
 
@@ -14,7 +14,7 @@ end
 -- Return true if 'x' is a delimiter
 -- (For symbols, numbers, characters, booleans and the dotted pair marker)
 --
-function isDelimiter(x)
+local function isDelimiter(x)
     return isWhiteSpace(x) or x == ""
     or string.match(x, "^[%[%]%(%)\"';]$")
 end
@@ -23,7 +23,7 @@ end
 -- Return true if 'x' is a valid first character for a symbol
 -- TODO Escaped Hex and Unicode characters currently not supported
 --
-function isInitialSymbolChar(x)
+local function isInitialSymbolChar(x)
     return string.match(x, "^[%a!&/:<=>~_%^%$%*%?%%]$")
 end
 
@@ -31,7 +31,7 @@ end
 -- Return true if 'x' is a valid subsequent character for a symbol
 -- TODO Escaped Hex and Unicode characters currently not supported
 --
-function isSubsequentSymbolChar(x)
+local function isSubsequentSymbolChar(x)
     return isInitialSymbolChar(x) or string.match(x, "^[%d%.%+%-@]$")
 end
 
@@ -46,7 +46,7 @@ end
 --
 -- Remove and return the next input character
 --
-function nextChar()
+local function nextChar()
     local result
     if charCache then
         result = charCache
@@ -62,7 +62,7 @@ end
 --
 -- Return the next input character without removing it
 --
-function peekChar()
+local function peekChar()
     if not charCache then
         charCache = nextChar()
     end
@@ -193,7 +193,7 @@ end
 --
 -- Remove a line comment from the scanner and return the next character
 --
-function stripLineComment()
+local function stripLineComment()
     local c
     repeat
         c = nextChar()
@@ -204,7 +204,7 @@ end
 --
 -- Remove a block comment from the scanner and return the next character
 --
-function stripBlockComment()
+local function stripBlockComment()
     local c
     local nestLevel = 1
     nextChar()
@@ -225,6 +225,6 @@ end
 -- Remove a block comment from the scanner and return the next character
 -- TODO Datum comments not currently supported
 --
-function stripDatumComment()
+local function stripDatumComment()
     return c
 end
