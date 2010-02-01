@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for inputFile in $@; do
+    LUA_PATH='?.lua;'${LUA_PATH} lua scheme2lua.lua < $inputFile
+done

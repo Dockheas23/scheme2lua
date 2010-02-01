@@ -1,0 +1,53 @@
+2009-10-21
+Woke up this morning with two visions:
+A man standing in WGB facing five men; and a stack of building blocks being deconstructed and reconstructed again. These have obvious connotations but gave a small sense of clarity about how the project might operate. 
+
+2009-10-25
+Read about and installed Lua. Looked a little at lambda calculus.
+
+2009-10-26
+Format of translator?
+Essential
+- File-to-file
+Optional/Possible?
+- Interactive to file
+- Interactive to sit on Lua interpreter
+- Runnable from scheme source file
+
+2009-11-02
+I've been thinking about some particulars over the last couple of weeks. Due to the apparent consistency in the syntax of Scheme, the parsing and building of expression trees should be reasonably straight-forward. I forsee some potential issues with finding an exact or workable parallel for all language constructs of Scheme in Lua.
+2009-11-04
+Possible approaches:
+
+1 to 1 mapping of scheme commands to Lua
+Advantages
+- Should be straightforward to implement
+- Would allow interactive interpreter
+Disadvantages
+- Probably inefficient
+
+Pass over entire source file (possibly multiple times)
+Advantages
+- Possibility of more optimised output
+Disadvantages
+- May be more difficult to implement
+
+2009-11-24
+Parser
+evaluate:
+t = next token
+if token matches '(':
+   func = evaluate
+   depending on func, evaluate parameters
+   return value of func(parameters)
+else if token matches "'":
+   quote next token
+else:
+   return t
+
+2009-12-15
+Challenges:
+Function application of unknown symbols
+Direct function application of lambda expression
+
+Evaluating lists using only first argument is not working, need new structure where each list is processed to completion
