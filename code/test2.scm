@@ -1,5 +1,5 @@
 (define x 5)
-(define identity (lambda x x))
+(define identity (lambda (x) x))
 (display (identity 5))
 
 (display ((lambda (x) (+ x 1)) 2))

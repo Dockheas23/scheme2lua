@@ -20,10 +20,16 @@ syntax = {
 
     ["lambda"] = function ()
         -- TODO fix dotted pair and single variable parameters
-        return "(function "
-        .. "(" .. parser.datumAsString(parser.readDatum()) .. ")\n"
+        local list = parser.readDatum()
+        local result = "(function ("
+            while type(list) == "table" and list.car ~= nil do
+                result = result .. tostring(list.car) .. ", "
+                list = list.cdr
+            end
+            result = string.sub(result, 1, -3) .. ")\n"
         .. "return " .. parser.translate(scanner.nextToken()) .. "\n"
         .. "end)"
+        return result
     end;
 
     ["quote"] = function ()
