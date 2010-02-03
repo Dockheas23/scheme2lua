@@ -27,6 +27,11 @@ function s2l_display(obj)
             end
         end
         io.write(")")
+    elseif type(obj) == "boolean" then
+        if obj then
+            io.write("#t")
+        else
+            io.write("#f")
     else
         io.write(tostring(obj))
     end
