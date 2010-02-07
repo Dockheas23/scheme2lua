@@ -63,3 +63,4 @@ where each list is processed to completion
 Significant discovery
 Every compound expression amounts to a function that returns a single scheme
 datum
+Need to enable more pass-through from special syntaxes to lua side
