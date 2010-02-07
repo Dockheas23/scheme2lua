@@ -32,6 +32,7 @@ function s2l_display(obj)
             io.write("#t")
         else
             io.write("#f")
+	end
     else
         io.write(tostring(obj))
     end

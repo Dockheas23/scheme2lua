@@ -9,7 +9,8 @@ require("scanner")
 syntax = {
     ["case-lambda"] = nil;
 
-    ["cond"] = nil;
+    ["cond"] = function ()
+    end;
 
     ["define"] = function ()
         -- TODO implement other forms of define
