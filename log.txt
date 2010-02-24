@@ -64,3 +64,9 @@ Significant discovery
 Every compound expression amounts to a function that returns a single scheme
 datum
 Need to enable more pass-through from special syntaxes to lua side
+
+2010-02-23
+Problem with complete function call model... Need to accommodate special
+syntaxes that are "above" the level of the output, like lambda and define for
+example. This has implications for using simpler language/capability extensions
+at the output level.

@@ -100,6 +100,10 @@ syntax = {
 -- A table of the supported Scheme procedures
 --
 procedures = {
+    ["cond"] = "s2l_cond";
+    ["lambda"] = "s2l_lambda";
+    ["quote"] = "s2l_quote";
+
     ["cons"] = "s2l_cons";
     ["car"] = "s2l_car";
     ["cdr"] = "s2l_cdr";

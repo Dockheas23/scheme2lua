@@ -43,31 +43,7 @@ function s2l_filter(proc, list)
 end
 
 function s2l_display(obj)
-    if type(obj) == "table" then
-        local list = obj
-        io.write("(")
-        while list.car ~= nil do
-            s2l_display(list.car)
-            if type(list.cdr) ~= "table" then
-                io.write(" . ")
-                s2l_display(list.cdr)
-                list.cdr = {}
-            end
-            list = list.cdr
-            if list.car ~= nil then
-                io.write(" ")
-            end
-        end
-        io.write(")")
-    elseif type(obj) == "boolean" then
-        if obj then
-            io.write("#t")
-        else
-            io.write("#f")
-	end
-    else
-        io.write(tostring(obj))
-    end
+    io.write(obj)
 end
 
 function s2l_newline()

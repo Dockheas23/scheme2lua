@@ -1,7 +1,15 @@
 module(..., package.seeall)
 
 require("forms")
+require("dataTypes")
 require("scanner")
+
+local
+applyFunction,
+gatherArguments,
+getArguments,
+readDatum,
+readCompound
 
 --
 -- Apply the Scheme function 'func'
@@ -34,7 +42,7 @@ end
 --
 -- Return an iterator over the arguments in a Scheme list syntactic form
 --
-function getArguments()
+getArguments = function ()
     return function ()
         local token, value = scanner.peekToken()
         if token == ")" or token == "]" then
@@ -45,48 +53,57 @@ function getArguments()
 end
 
 --
--- Read and return a single scheme datum from the scanner
--- TODO List is currently the only compound datum supported
--- Vector and Bytevector yet to be implemented
+-- Return the set of Scheme function arguments from the scanner as a table
 --
-function readDatum()
-    local token, value = scanner.nextToken()
-    local result
-    if token == "(" or token == "[" then
-        return readList()
+gatherArguments = function (funcName)
+    local args = scmArgs.new()
+    if specialSyntax[funcName] then
+        return specialSyntax[funcName]()
     end
+    for arg, argValue in getArguments() do
+        table.insert(args, translate(arg, argValue))
+    end
+    return tostring(args)
+end
+
+--
+-- Apply the Scheme function 'func'
+--
+applyFunction = function (func)
+    local funcName = procedures[func] or func
+    return (procedures[func] or func) .. "(" .. gatherArguments(func) .. ")"
+end
+
+--
+-- Read and return a single scheme datum from the scanner
+--
+readDatum = function ()
+    local token, value = scanner.peekToken()
+    local result
+    if token == "(" or token == "[" or token == "#(" or token == "#vu8(" then
+        return readCompound()
+    end
+    scanner.nextToken()
     return translate(token, value)
 end
 
-function readList()
-    local token, value = scanner.peekToken()
-    if token == ")" or token == "]" then
-        scanner.nextToken()
-        return {}
-    elseif token == "." then
-        scanner.nextToken()
-        local lastItem = readDatum()
-        scanner.nextToken()
-        return lastItem
-    else
-        return {car = readDatum(); cdr = readList()}
-    end
-end
-
 --
--- Return a string representation of 'datum'
+-- Read and return a compound scheme datum from the scanner
 --
-function datumAsString(datum)
-    if type(datum) == "table" then
-        local result = "{"
-        for key, value in pairs(datum) do
-            result = result .. "[\"" .. tostring(key) .. "\"] = "
-            .. datumAsString(value) .. "; "
-        end
-        return result .. "}"
-    else
-        return tostring(datum)
+readCompound = function ()
+    local args = scmArgs.new()
+    local token, value = scanner.nextToken()
+    local dataType = "scmList"
+    if token == "#(" then
+        dataType = "scmVector"
+    elseif token == "#vu8(" then
+        dataType = "scmBytevector"
     end
+    while token ~= ")" and token ~= "]" do
+        table.insert(args, readDatum())
+        token, value = scanner.peekToken()
+    end
+    return dataType .. ".new({" .. tostring(args) .. "})"
 end
 
 --
@@ -98,11 +115,20 @@ function translate(token, value)
         return nil
     end
 
-    if token == "boolean" or token == "number" or token == "symbol" then
+    if token == "symbol" then
         return value
 
-    elseif token == "character" or token == "string" then
-        return "\"" .. value .. "\""
+    elseif token == "boolean" then
+        return "scmBoolean.new(" .. tostring(value) .. ")"
+
+    elseif token == "character" then
+        return "scmCharacter.new(" .. tostring(value) .. ")"
+
+    elseif token == "string" then
+        return "scmString.new(" .. tostring(value) .. ")"
+
+    elseif token == "number" then
+        return "scmNumber.new(" .. tostring(value) .. ")"
 
     elseif token == "(" or token == "[" then
         local procedureValue = applyFunction(translate(scanner.nextToken()))
@@ -111,6 +137,7 @@ function translate(token, value)
 
     elseif token == "'" then
         return applyFunction("quote")
+
     else
         return token
     end
