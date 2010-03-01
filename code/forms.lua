@@ -4,94 +4,118 @@ require("parser")
 require("scanner")
 
 --
--- A table of the supported Scheme syntaxes
+-- A table of supported special syntaxes. Each is a function that returns the
+-- final output string for that syntax.
 --
-syntax = {
-    ["case-lambda"] = nil;
-
+specialSyntax = {
     ["cond"] = function ()
-        local result = "(function () "
+        local result = "(function ()\n"
             local token = scanner.peekToken()
             local first = true
             while token ~= ")" do
-                scanner.nextToken()
-                local test = parser.translate(scanner.nextToken())
+                scanner.nextToken()  -- Remove initial bracket of clause
+                local test = parser.parse(scanner.nextToken())
                 if first then
-                    result = result .. "if " .. test .. " then "
+                    result = result .. "if "
+                    .. test:selfAsString() .. ".value then\n"
                     first = false
-                elseif test == "else" then
-                    result = result .. "else "
+                elseif tostring(test) == "else" then
+                    result = result .. "else\n"
                 else
-                    result = result .. "elseif " .. test .. " then "
+                    result = result .. "elseif "
+                    .. test:selfAsString() .. ".value then\n"
                 end
-                local expr = parser.translate(scanner.nextToken())
-                if expr == "=>" then
-                    local func = parser.translate(scanner.nextToken())
-                    result = result .. "return " .. func .. "(" .. test .. ") "
-                elseif expr == ")" then
-                    result = result .. "return " .. test .. " "
+                local expr = parser.parse(scanner.nextToken())
+                if tostring(expr) == "=>" then
+                    local func = parser.parse(scanner.nextToken())
+                    result = result .. "return " .. func:selfAsString() ..
+                    "(" .. scmArglist.fromTable{test:selfAsString()} .. ")\n"
+                elseif tostring(expr) == ")" then
+                    result = result .. "return " .. test:selfAsString() .. "\n"
                 else
-                    while expr ~= ")" do
+                    while tostring(expr) ~= ")" do
                         if scanner.peekToken() == ")" then
                             result = result .. "return "
                         end
-                        result = result .. expr .. "\n"
-                        expr = parser.translate(scanner.nextToken())
+                        result = result .. expr:selfAsString() .. "\n"
+                        expr = parser.parse(scanner.nextToken())
                     end
                 end
                 token = scanner.peekToken()
             end
-        return result .. "end end)()"
-    end;
+            return result .. "end\nend)()"
+        end;
 
     ["define"] = function ()
         -- TODO implement other forms of define
-        local assignee = parser.translate(scanner.nextToken())
-        local object = parser.translate(scanner.nextToken())
-        return assignee .. " = " .. object
+        local assignee = parser.parse(scanner.nextToken())
+        local object = parser.parse(scanner.nextToken())
+        return assignee:selfAsString() .. " = " .. object:selfAsString()
     end;
 
     ["lambda"] = function ()
-        -- TODO fix dotted pair and single variable parameters
-        local list = parser.readDatum()
-        local result = "(function ("
-            while type(list) == "table" and list.car ~= nil do
-                result = result .. tostring(list.car) .. ", "
-                list = list.cdr
+        local paramList = {}
+        local vararg = false
+        local params = parser.readDatum()
+        if params.scmType == "List" then
+            while params.value ~= nil do
+                table.insert(paramList, params.value.car)
+                if params.value.cdr.scmType ~= "List" then
+                    vararg = params.value.cdr
+                    break
+                end
+                params = params.value.cdr
             end
-            result = string.sub(result, 1, -3) .. ")\n"
-        .. "return " .. parser.translate(scanner.nextToken()) .. "\n"
-        .. "end)"
+        else
+            vararg = params
+        end
+        local result = "(function (args)\n"
+            for _, param in ipairs(paramList) do
+                result = result .. "local " .. tostring(param)
+                .. " = args:nextArg()\n"
+            end
+            if vararg ~= false then
+                result = result .. "local " .. tostring(vararg)
+                .. " = scmList.fromArglist(args)\n"
+            end
+            result = result .. "return "
+            .. tostring(parser.parse(scanner.nextToken())) .. "\nend)"
         return result
+    end;
+}
+
+--
+-- A table for scheme functions that need their arguments collected in a
+-- non-standard way. Each is a function that returns the argument list as a
+-- string.
+--
+specialArgs = {
+    ["cond"] = function ()
+        local token = scanner.peekToken()
+        local args = {}
+        while token ~= ")" do
+            scanner.nextToken() -- Remove initial '('
+            local clause = {}
+            while scanner.peekToken() ~= ")" do
+                local exp = parser.parse(scanner.nextToken())
+                if exp.scmType == "Symbol" then
+                    if exp.value == "else" then
+                        exp = scmString:new("else")
+                    elseif exp.scmValue == "=>" then
+                        exp = scmString:new("=>")
+                    end
+                end
+                table.insert(clause, exp)
+            end
+            scanner.nextToken() -- Remove ending ')'
+            table.insert(args, scmList.fromTable(clause))
+            token = scanner.peekToken()
+        end
+        return parser.argumentList(args)
     end;
 
     ["quote"] = function ()
-        return parser.datumAsString(parser.readDatum())
-    end;
-
-    ["and"] = function ()
-        local token = scanner.peekToken()
-        local result = "(function ()\nlocal result = true\n"
-        while token ~= ")" do
-            local test = parser.translate(scanner.nextToken())
-            result = result .. "if " .. tostring(test)
-                            .. " == false then return false "
-            result = result .. "else result = " .. tostring(test) .. " end\n"
-            token = scanner.peekToken()
-        end
-        return result .. "return result end)()"
-    end;
-
-    ["or"] = function ()
-        local token = scanner.peekToken()
-        local result = "(function () "
-        while token ~= ")" do
-            local test = parser.translate(scanner.nextToken())
-            result = result .. "if " .. tostring(test) 
-                            .. " then return " .. tostring(test) .. " end\n"
-            token = scanner.peekToken()
-        end
-        return result .. "return false end)()"
+        return scmArglist.fromTable{parser.readDatum():selfAsString()}
     end;
 
 }
@@ -101,7 +125,6 @@ syntax = {
 --
 procedures = {
     ["cond"] = "s2l_cond";
-    ["lambda"] = "s2l_lambda";
     ["quote"] = "s2l_quote";
 
     ["cons"] = "s2l_cons";
@@ -127,7 +150,7 @@ procedures = {
     ["="] = "s2l_equals";
     [">"] = "s2l_greaterThan";
     [">="] = "s2l_greaterThanOrEqual";
-    ["eqv?"] = "s2l_equals";   -- Temporarily
+    ["eqv?"] = "s2l_equals";   -- FIXME
 
     -- Boolean operators
     ["and"] = "s2l_and";

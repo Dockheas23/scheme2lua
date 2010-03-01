@@ -9,8 +9,8 @@ io.input(io.stdin)
 
 -- The main loop for the translator
 scanner.init()
-local token = parser.translate(scanner.nextToken())
-while token ~= nil do
-    print(token)
-    token = parser.translate(scanner.nextToken())
+local expression = parser.parse(scanner.nextToken())
+while expression ~= nil do
+    print(tostring(expression))
+    expression = parser.parse(scanner.nextToken())
 end

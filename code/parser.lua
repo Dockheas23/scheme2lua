@@ -1,43 +1,21 @@
 module(..., package.seeall)
 
-require("forms")
 require("dataTypes")
+require("forms")
 require("scanner")
 
-local
-applyFunction,
-gatherArguments,
-getArguments,
-readDatum,
-readCompound
+local applyFunction, gatherArguments, getArguments, readCompound
 
---
--- Apply the Scheme function 'func'
---
-local function applyFunction(func)
-    local funcName = func
-    if forms.syntax[func] then
-        return forms.syntax[func]()
-    elseif forms.procedures[func] then
-        funcName = forms.procedures[func]
+argumentList = function (table)
+    local result = ""
+    for _, v in ipairs(table) do
+        result = result .. v:selfAsString() .. ", "
     end
-    return funcName .. "(" .. gatherArguments() .. ")"
-end
-
---
--- Return the set of Scheme function arguments from the scanner as a
--- comma-separated string
---
-function gatherArguments()
-    local argList = ""
-    for arg, argValue in getArguments() do
-        argList = argList .. translate(arg, argValue) .. ", "
+    if result ~= "" then
+        result = string.sub(result, 1, -3)
     end
-    if argList ~= "" then
-        argList = string.sub(argList, 1, -3)
-    end
-    return argList
-end
+    return result
+end;
 
 --
 -- Return an iterator over the arguments in a Scheme list syntactic form
@@ -53,25 +31,31 @@ getArguments = function ()
 end
 
 --
--- Return the set of Scheme function arguments from the scanner as a table
+-- Return the set of Scheme function arguments from the scanner as an
+-- scmArglist
 --
 gatherArguments = function (funcName)
-    local args = scmArgs.new()
-    if specialSyntax[funcName] then
-        return specialSyntax[funcName]()
+    if forms.specialArgs[funcName] then
+        return forms.specialArgs[funcName]()
+    else
+        local result = scmArglist:new()
+        for arg, argValue in getArguments() do
+            result:add(parse(arg, argValue))
+        end
+        return result
     end
-    for arg, argValue in getArguments() do
-        table.insert(args, translate(arg, argValue))
-    end
-    return tostring(args)
 end
 
 --
 -- Apply the Scheme function 'func'
 --
 applyFunction = function (func)
-    local funcName = procedures[func] or func
-    return (procedures[func] or func) .. "(" .. gatherArguments(func) .. ")"
+    local f = tostring(func)
+    if forms.specialSyntax[f] then
+        return forms.specialSyntax[f]()
+    end
+    return (forms.procedures[f] or f)
+    .. "(" .. gatherArguments(f):selfAsString() .. ")"
 end
 
 --
@@ -79,66 +63,86 @@ end
 --
 readDatum = function ()
     local token, value = scanner.peekToken()
-    local result
-    if token == "(" or token == "[" or token == "#(" or token == "#vu8(" then
-        return readCompound()
+    if token == "(" or token == "[" then
+        scanner.nextToken()   -- Remove initial bracket
+        local list = readList()
+        scanner.nextToken()   -- Remove ending bracket
+        return list
+    elseif token == "#(" or token == "#vu8(" then
+        return readVector()
     end
     scanner.nextToken()
-    return translate(token, value)
+    return parse(token, value)
 end
 
 --
--- Read and return a compound scheme datum from the scanner
+-- Read and return a scheme list from the scanner (not including brackets)
 --
-readCompound = function ()
-    local args = scmArgs.new()
-    local token, value = scanner.nextToken()
-    local dataType = "scmList"
-    if token == "#(" then
-        dataType = "scmVector"
-    elseif token == "#vu8(" then
-        dataType = "scmBytevector"
+readList = function ()
+    local token = scanner.peekToken()
+    if token == ")" or token == "]" then
+        return scmList:new()
+    elseif token == "." then
+        scanner.nextToken()
+        return readDatum()
+    else
+        return scmList:new{car = readDatum(); cdr = readList()}
     end
-    while token ~= ")" and token ~= "]" do
-        table.insert(args, readDatum())
-        token, value = scanner.peekToken()
-    end
-    return dataType .. ".new({" .. tostring(args) .. "})"
 end
 
 --
--- Evaluate the Scheme token 'token', with value 'value', and return the
--- appropriate Lua translation
+-- Read and return a scheme vector or bytevector from the scanner (including
+-- brackets)
 --
-function translate(token, value)
+readVector = function ()
+    local token = scanner.nextToken()
+    local objectType = scmVector
+    local value = {}
+    if token == "#vu8(" then
+        objectType = scmBytevector
+    end
+    token = scanner.peekToken()
+    while token ~= ")" do
+        table.insert(scmValue, readDatum())
+        token = scanner.peekToken()
+    end
+    scanner.nextToken()
+    return objectType:new(value)
+end
+
+--
+-- Evaluate the Scheme token 'token', with value 'value', and return an scmData
+-- encapsulating the appropriate Lua translation
+--
+function parse(token, value)
     if token == "EOF" then
         return nil
     end
 
-    if token == "symbol" then
-        return value
+    if token == "Boolean" then
+        return scmBoolean:new(value)
 
-    elseif token == "boolean" then
-        return "scmBoolean.new(" .. tostring(value) .. ")"
+    elseif token == "Character" then
+        return scmCharacter:new(value)
 
-    elseif token == "character" then
-        return "scmCharacter.new(" .. tostring(value) .. ")"
+    elseif token == "String" then
+        return scmString:new(value)
 
-    elseif token == "string" then
-        return "scmString.new(" .. tostring(value) .. ")"
+    elseif token == "Number" then
+        return scmNumber:new(value)
 
-    elseif token == "number" then
-        return "scmNumber.new(" .. tostring(value) .. ")"
+    elseif token == "Symbol" then
+        return scmSymbol:new(value)
 
     elseif token == "(" or token == "[" then
-        local procedureValue = applyFunction(translate(scanner.nextToken()))
+        local procedureValue = applyFunction(parse(scanner.nextToken()))
         scanner.nextToken()
-        return procedureValue
+        return scmProcedure:new(procedureValue)
 
     elseif token == "'" then
-        return applyFunction("quote")
+        return readDatum()
 
     else
-        return token
+        return scmData:new(token)
     end
 end

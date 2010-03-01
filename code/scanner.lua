@@ -1,5 +1,6 @@
 module(..., package.seeall)
 
+local stripLineComment, stripBlockComment, stripDatumComment
 local charCache
 local tokenCache
 
@@ -114,10 +115,10 @@ function nextToken()
             c = nextChar()
             symbolValue = symbolValue .. c
         end
-        token, value = "symbol", symbolValue
+        token, value = "Symbol", symbolValue
 
     elseif c == "#" and string.match(peekChar(), "[TtFf]") then
-        token = "boolean"
+        token = "Boolean"
         if string.match(nextChar(), "[Tt]") then
             value = true
         else
@@ -128,7 +129,7 @@ function nextToken()
         --
         -- TODO Named and hex characters currently not supported
         --
-        token = "character"
+        token = "Character"
         nextChar()
         value = nextChar()
         
@@ -143,7 +144,7 @@ function nextToken()
             stringValue = stringValue .. c
             c = nextChar()
         end
-        token, value = "string", stringValue
+        token, value = "String", stringValue
 
     elseif c == "#" and string.match(peekChar(), "[bodxie]")
         --
@@ -156,7 +157,7 @@ function nextToken()
             local digit = string.byte(c) - string.byte("0")
             numberValue = 10 * numberValue + digit
         end
-        token, value = "number", numberValue
+        token, value = "Number", numberValue
         
     elseif c == "#" and peekChar() == "(" then
         nextChar()
@@ -193,7 +194,7 @@ end
 --
 -- Remove a line comment from the scanner and return the next character
 --
-local function stripLineComment()
+stripLineComment = function ()
     local c
     repeat
         c = nextChar()
@@ -204,7 +205,7 @@ end
 --
 -- Remove a block comment from the scanner and return the next character
 --
-local function stripBlockComment()
+stripBlockComment = function ()
     local c
     local nestLevel = 1
     nextChar()
@@ -225,6 +226,6 @@ end
 -- Remove a block comment from the scanner and return the next character
 -- TODO Datum comments not currently supported
 --
-local function stripDatumComment()
+stripDatumComment = function ()
     return c
 end

@@ -70,3 +70,8 @@ Problem with complete function call model... Need to accommodate special
 syntaxes that are "above" the level of the output, like lambda and define for
 example. This has implications for using simpler language/capability extensions
 at the output level.
+
+2010-02-28
+Problem with functions that need "short-circuit" characteristics. e.g. and, or.
+This prevents proper recursion. Propose to implement all functions to take one
+argument, an Arglist that will allow iterative capabilities over the arguments.
