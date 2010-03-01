@@ -6,17 +6,6 @@ require("scanner")
 
 local applyFunction, gatherArguments, getArguments, readCompound
 
-argumentList = function (table)
-    local result = ""
-    for _, v in ipairs(table) do
-        result = result .. v:selfAsString() .. ", "
-    end
-    if result ~= "" then
-        result = string.sub(result, 1, -3)
-    end
-    return result
-end;
-
 --
 -- Return an iterator over the arguments in a Scheme list syntactic form
 --

@@ -1,3 +1,17 @@
+--
+-- SCHEME TO LUA TRANSLATOR
+-- Preamble File 1
+-- This file contains lua container tables for scheme data
+--
+
+--
+-- Container for basic scheme data. Actual types inherit from this.
+-- Noteworthy methods:
+-- selfAsString - an (overrideable) object function that returns a string of
+-- lua code that will recreate that object
+-- valueAsString - an (overrideable) object function that returns the output
+-- representation of that scheme object
+--
 scmData = {
     scmType = "Data";
     create = function (self, o)
@@ -19,6 +33,9 @@ scmData = {
     end;
 }
 
+--
+-- This wraps scheme function arguments with an iterative interface
+--
 scmArglist = scmData:create{
     scmType = "Arglist";
     currentIndex = 1;
@@ -50,7 +67,7 @@ scmArglist = scmData:create{
         if self.numElements == 0 then
             return ""
         end
-        return "scmArglist:new{\n" .. self:itemsAsString() .. "}"
+        return "scmArglist.fromTable{\n" .. self:itemsAsString() .. "}"
     end;
     fromTable = function (table)
         local result = scmArglist:new()
@@ -61,6 +78,9 @@ scmArglist = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme procedure
+--
 scmProcedure = scmData:create{
     scmType = "Procedure";
     selfAsString = function (self)
@@ -68,6 +88,9 @@ scmProcedure = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme symbol
+--
 scmSymbol = scmData:create{
     scmType = "Symbol";
     selfAsString = function (self)
@@ -75,6 +98,9 @@ scmSymbol = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme boolean
+--
 scmBoolean = scmData:create{
     scmType = "Boolean";
     valueAsString = function (self)
@@ -82,6 +108,9 @@ scmBoolean = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme character
+--
 scmCharacter = scmData:create{
     scmType = "Character";
     selfAsString = function (self)
@@ -89,6 +118,9 @@ scmCharacter = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme string
+--
 scmString = scmData:create{
     scmType = "String";
     selfAsString = function (self)
@@ -96,10 +128,16 @@ scmString = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme number
+--
 scmNumber = scmData:create{
     scmType = "Number";
 }
 
+--
+-- Data type to hold a scheme list
+--
 scmList = scmData:create{
     scmType = "List";
     fromTable = function (table)
@@ -146,6 +184,9 @@ scmList = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme vector
+--
 scmVector = scmData:create{
     scmType = "Vector";
     itemsAsString = function (self)
@@ -163,6 +204,9 @@ scmVector = scmData:create{
     end;
 }
 
+--
+-- Data type to hold a scheme bytevector
+--
 scmBytevector = scmVector:create{
     scmType = "Bytevector";
     valueAsString = function (self)

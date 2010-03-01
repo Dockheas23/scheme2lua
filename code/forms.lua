@@ -86,38 +86,13 @@ specialSyntax = {
 
 --
 -- A table for scheme functions that need their arguments collected in a
--- non-standard way. Each is a function that returns the argument list as a
--- string.
+-- non-standard way. Each is a function that returns the argument list as an
+-- scmArglist.
 --
 specialArgs = {
-    ["cond"] = function ()
-        local token = scanner.peekToken()
-        local args = {}
-        while token ~= ")" do
-            scanner.nextToken() -- Remove initial '('
-            local clause = {}
-            while scanner.peekToken() ~= ")" do
-                local exp = parser.parse(scanner.nextToken())
-                if exp.scmType == "Symbol" then
-                    if exp.value == "else" then
-                        exp = scmString:new("else")
-                    elseif exp.scmValue == "=>" then
-                        exp = scmString:new("=>")
-                    end
-                end
-                table.insert(clause, exp)
-            end
-            scanner.nextToken() -- Remove ending ')'
-            table.insert(args, scmList.fromTable(clause))
-            token = scanner.peekToken()
-        end
-        return parser.argumentList(args)
-    end;
-
     ["quote"] = function ()
         return scmArglist.fromTable{parser.readDatum():selfAsString()}
     end;
-
 }
 
 --
