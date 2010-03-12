@@ -5,114 +5,100 @@
 --
 
 --
--- Utility function to apply a function to its arguments
---
-function apply(func, ...)
-    return func(scmArglist.fromTable{...})
-end
-
-
---
 -- BEGIN SCHEME FUNCTIONS
 --
 
-function s2l_quote(args)
-    return args:nextArg()
+function s2l_quote(obj)
+    return obj
 end
 
-function s2l_cons(args)
-    return scmList:new{car = args:nextArg(); cdr = args:nextArg()}
+function s2l_cons(obj1, obj2)
+    return scmList:new{car = obj1; cdr = obj2}
 end
 
-function s2l_car(args)
-    return args:nextArg().value.car
+function s2l_car(pair)
+    return pair.value.car
 end
 
-function s2l_cdr(args)
-    return args:nextArg().value.cdr
+function s2l_cdr(pair)
+    return pair.value.cdr
 end
 
-function s2l_list(args)
-    return scmList:fromArglist(args)
+function s2l_list(...)
+    return scmList:fromTable{...}
 end
 
 function s2l_length(args)
     return scmNumber:new(0) -- FIXME
 end
 
-function s2l_filter(args)
-    local proc = args:nextArg()
-    local list = args:nextArg()
-    if apply(s2l_null, list) then
+function s2l_filter(proc, list)
+    if s2l_null(list) then
         return scmList:new()
-    elseif proc(apply(s2l_car, list)) then
-        return apply(s2l_cons,
-        apply(s2l_car, list),
-        apply(s2l_filter, proc, apply(s2l_cdr, list)))
+    elseif proc(s2l_car(list)) then
+        return s2l_cons(s2l_car(list), s2l_filter(proc, s2l_cdr(list)))
     else
-        return apply(s2l_filter, proc, apply(s2l_cdr, list))
+        return s2l_filter(proc, s2l_cdr(list))
     end
 end
 
-function s2l_display(args)
-    io.write(tostring(args:nextArg()))
+function s2l_display(obj)
+    io.write(tostring(obj))
 end
 
 function s2l_newline()
     io.write("\n")
 end
 
-function s2l_arithmeticPlus(args)
+function s2l_arithmeticPlus(...)
     local result = 0
-    while args:hasNext() do
-	local item = args:nextArg()
-        result = result + 1 -- item.value
+    for _, item in ipairs(arg) do
+        result = result + item.value
     end
     return scmNumber:new(result)
 end
 
 -- FIXME
-function s2l_arithmeticMinus(args)
-    return scmNumber:new(args:nextArg() - args:nextArg())
+function s2l_arithmeticMinus(a, b)
+    return scmNumber:new(a.value - b.value)
 end
 
-function s2l_arithmeticMultiply(args)
+function s2l_arithmeticMultiply(...)
     local result = 1
-    while args:hasNext() do
-        result = result * args:nextArg().value
+    for _, item in ipairs(arg) do
+        result = result * item.value
     end
     return scmNumber:new(result)
 end
 
 -- FIXME
-function s2l_arithmeticDivide(args)
-    return scmNumber:new(args:nextArg().value / args:nextArg().value)
+function s2l_arithmeticDivide(a, b)
+    return scmNumber:new(a.value / b.value)
 end
 
-function s2l_lessThan(args)
-    return scmBoolean:new(args:nextArg().value < args:nextArg().value)
+function s2l_lessThan(n1, n2)
+    return scmBoolean:new(n1.value < n2.value)
 end
 
-function s2l_lessThanOrEqual(args)
-    return scmBoolean:new(args:nextArg().value <= args:nextArg().value)
+function s2l_lessThanOrEqual(n1, n2)
+    return scmBoolean:new(n1.value <= n2.value)
 end
 
-function s2l_equals(args)
-    return scmBoolean:new(args:nextArg().value == args:nextArg().value)
+function s2l_equals(n1, n2)
+    return scmBoolean:new(n1.value == n2.value)
 end
 
-function s2l_greaterThan(args)
-    return scmBoolean:new(args:nextArg().value > args:nextArg().value)
+function s2l_greaterThan(n1, n2)
+    return scmBoolean:new(n1.value > n2.value)
 end
 
-function s2l_greaterThanOrEqual(args)
-    return scmBoolean:new(args:nextArg().value >= args:nextArg().value)
+function s2l_greaterThanOrEqual(n1, n2)
+    return scmBoolean:new(n1.value >= n2.value)
 end
 
-function s2l_and(args)
+function s2l_and(...)
     local result = scmBoolean:new(true)
-    while args:hasNext() do
-	local item = args:nextArg()
+    for index, item in ipairs(arg) do
         if item.value == false then
             return scmBoolean:new(false)
         else
@@ -122,9 +108,8 @@ function s2l_and(args)
     return result
 end
 
-function s2l_or(args)
-    while args:hasNext() do
-	local item = args:nextArg()
+function s2l_or(...)
+    for index, item in ipairs(arg) do
         if item.value then
             return item
         end
@@ -132,35 +117,30 @@ function s2l_or(args)
     return scmBoolean:new(false)
 end
 
-function s2l_not(args)
-    if args:nextArg().value == false then
+function s2l_not(obj)
+    if obj.value == false then
         return scmBoolean:new(true)
     end
     return scmBoolean:new(false)
 end
 
-function s2l_pair(args)
-    local obj = args:nextArg()
+function s2l_pair(obj)
     return scmBoolean:new(obj.scmType == "List" and obj.value ~= nil)
 end
 
-function s2l_boolean(args)
-    local obj = args:nextArg()
+function s2l_boolean(obj)
     return scmBoolean:new(obj.scmType == "Boolean")
 end
 
-function s2l_null(args)
-    local obj = args:nextArg()
+function s2l_null(obj)
     return scmBoolean:new(obj.scmType == "List" and obj.value == nil)
 end
 
-function s2l_number(args)
-    local obj = args:nextArg()
+function s2l_number(obj)
     return scmBoolean:new(obj.scmType == "Number")
 end
 
-function s2l_integer(args)
-    local obj = args:nextArg()
+function s2l_integer(obj)
     return scmBoolean:new(obj.scmType == "Number" and obj.value % 1 == 0)
 end
 

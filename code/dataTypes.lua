@@ -40,8 +40,10 @@ scmArglist = scmData:create{
     scmType = "Arglist";
     currentIndex = 1;
     numElements = 0;
-    value = {};
     add = function (self, item)
+        if self.value == nil then
+            self.value = {}
+        end
         self.numElements = self.numElements + 1
         self.value[self.numElements] = item
     end;
@@ -67,7 +69,8 @@ scmArglist = scmData:create{
         if self.numElements == 0 then
             return ""
         end
-        return "scmArglist.fromTable{\n" .. self:itemsAsString() .. "}"
+        return self:itemsAsString()
+        -- return "scmArglist.fromTable{\n" .. self:itemsAsString() .. "}"
     end;
     fromTable = function (table)
         local result = scmArglist:new()

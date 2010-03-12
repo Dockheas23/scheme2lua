@@ -29,7 +29,7 @@ specialSyntax = {
                 if tostring(expr) == "=>" then
                     local func = parser.parse(scanner.nextToken())
                     result = result .. "return " .. func:selfAsString() ..
-                    "(" .. scmArglist.fromTable{test:selfAsString()} .. ")\n"
+                    "(" .. test:selfAsString() .. ")\n"
                 elseif tostring(expr) == ")" then
                     result = result .. "return " .. test:selfAsString() .. "\n"
                 else
@@ -59,7 +59,7 @@ specialSyntax = {
         local params = parser.readDatum()
         if params.scmType == "List" then
             while params.value ~= nil do
-                table.insert(paramList, params.value.car)
+                table.insert(paramList, scmSymbol:new(params.value.car))
                 if params.value.cdr.scmType ~= "List" then
                     vararg = params.value.cdr
                     break
@@ -69,14 +69,12 @@ specialSyntax = {
         else
             vararg = params
         end
-        local result = "(function (args)\n"
-            for _, param in ipairs(paramList) do
-                result = result .. "local " .. tostring(param)
-                .. " = args:nextArg()\n"
-            end
+        local result = "(function ("
+            .. scmArglist.fromTable(paramList):selfAsString()
+            .. (vararg and "..." or "") .. ")\n"
             if vararg ~= false then
                 result = result .. "local " .. tostring(vararg)
-                .. " = scmList.fromArglist(args)\n"
+                .. " = scmList.fromTable{...}\n"
             end
             result = result .. "return "
             .. tostring(parser.parse(scanner.nextToken())) .. "\nend)"
@@ -91,7 +89,7 @@ specialSyntax = {
 --
 specialArgs = {
     ["quote"] = function ()
-        return scmArglist.fromTable{parser.readDatum():selfAsString()}
+        return parser.readDatum():selfAsString()
     end;
 }
 
