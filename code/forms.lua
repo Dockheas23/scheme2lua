@@ -83,9 +83,19 @@ specialSyntax = {
 }
 
 --
+-- A table for scheme functions that need all of their arguments wrapped in
+-- functions. This prevents the arguments from being fully evaluated and is
+-- useful for short-circuit operations
+--
+wrappedArgs = {
+    ["and"] = true;
+    ["or"] = true;
+}
+
+--
 -- A table for scheme functions that need their arguments collected in a
--- non-standard way. Each is a function that returns the argument list as an
--- scmArglist.
+-- non-standard way. Each is a function that returns the argument list as a
+-- string.
 --
 specialArgs = {
     ["quote"] = function ()

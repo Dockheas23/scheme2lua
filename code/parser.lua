@@ -4,7 +4,7 @@ require("dataTypes")
 require("forms")
 require("scanner")
 
-local applyFunction, gatherArguments, getArguments, readCompound
+local applyFunction, getArguments, readCompound
 
 --
 -- Return an iterator over the arguments in a Scheme list syntactic form
@@ -20,8 +20,8 @@ getArguments = function ()
 end
 
 --
--- Return the set of Scheme function arguments from the scanner as an
--- scmArglist
+-- Return the set of Scheme function arguments from the scanner as a
+-- string
 --
 gatherArguments = function (funcName)
     if forms.specialArgs[funcName] then
@@ -31,7 +31,10 @@ gatherArguments = function (funcName)
         for arg, argValue in getArguments() do
             result:add(parse(arg, argValue))
         end
-        return result
+        if forms.wrappedArgs[funcName] then
+            return result:wrappedArgs()
+        end
+        return result:selfAsString()
     end
 end
 
@@ -44,7 +47,7 @@ applyFunction = function (func)
         return forms.specialSyntax[f]()
     end
     return (forms.procedures[f] or f)
-    .. "(" .. gatherArguments(f):selfAsString() .. ")"
+    .. "(" .. gatherArguments(f) .. ")"
 end
 
 --

@@ -25,17 +25,22 @@ function s2l_cdr(pair)
 end
 
 function s2l_list(...)
-    return scmList:fromTable{...}
+    return scmList.fromTable{...}
 end
 
-function s2l_length(args)
-    return scmNumber:new(0) -- FIXME
+function s2l_length(list)
+    local result = 0
+    while not s2l_null(list).value do -- FIXME Clean up (metamethods maybe)
+        result = result + 1
+        list = s2l_cdr(list)
+    end
+    return scmNumber:new(result)
 end
 
 function s2l_filter(proc, list)
-    if s2l_null(list) then
+    if s2l_null(list).value then -- FIXME Clean up (metamethods maybe)
         return scmList:new()
-    elseif proc(s2l_car(list)) then
+    elseif proc(s2l_car(list)).value then -- FIXME Clean up (metamethods maybe)
         return s2l_cons(s2l_car(list), s2l_filter(proc, s2l_cdr(list)))
     else
         return s2l_filter(proc, s2l_cdr(list))
@@ -96,9 +101,11 @@ function s2l_greaterThanOrEqual(n1, n2)
     return scmBoolean:new(n1.value >= n2.value)
 end
 
+-- Short circuit
 function s2l_and(...)
     local result = scmBoolean:new(true)
-    for index, item in ipairs(arg) do
+    for _, f in ipairs(arg) do
+        local item = f()
         if item.value == false then
             return scmBoolean:new(false)
         else
@@ -108,8 +115,10 @@ function s2l_and(...)
     return result
 end
 
+-- Short circuit
 function s2l_or(...)
-    for index, item in ipairs(arg) do
+    for _, f in ipairs(arg) do
+        local item = f()
         if item.value then
             return item
         end

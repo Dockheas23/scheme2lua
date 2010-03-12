@@ -70,7 +70,20 @@ scmArglist = scmData:create{
             return ""
         end
         return self:itemsAsString()
-        -- return "scmArglist.fromTable{\n" .. self:itemsAsString() .. "}"
+    end;
+    wrappedArgs = function (self)
+        if self.numElements == 0 then
+            return ""
+        end
+        local result = ""
+        for _, item in ipairs(self.value) do
+            result = result .. "(function () return " .. item:selfAsString()
+                .. " end), "
+        end
+        if result ~= "" then
+            result = string.sub(result, 1, -3)
+        end
+        return result
     end;
     fromTable = function (table)
         local result = scmArglist:new()
