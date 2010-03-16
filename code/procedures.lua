@@ -57,7 +57,7 @@ end
 
 function s2l_arithmeticPlus(...)
     local result = 0
-    for _, item in ipairs(arg) do
+    for _, item in ipairs{...} do
         result = result + item.value
     end
     return scmNumber:new(result)
@@ -70,7 +70,7 @@ end
 
 function s2l_arithmeticMultiply(...)
     local result = 1
-    for _, item in ipairs(arg) do
+    for _, item in ipairs{...} do
         result = result * item.value
     end
     return scmNumber:new(result)
@@ -104,7 +104,7 @@ end
 -- Short circuit
 function s2l_and(...)
     local result = scmBoolean:new(true)
-    for _, f in ipairs(arg) do
+    for _, f in ipairs{...} do
         local item = f()
         if item.value == false then
             return scmBoolean:new(false)
@@ -117,7 +117,7 @@ end
 
 -- Short circuit
 function s2l_or(...)
-    for _, f in ipairs(arg) do
+    for _, f in ipairs{...} do
         local item = f()
         if item.value then
             return item
