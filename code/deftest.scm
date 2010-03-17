@@ -43,3 +43,4 @@
 (display "(QuickSort '(1 4 3 5 3 5 5 2)): ")
 (display (QuickSort '(1 4 3 5 3 5 5 2)))
 (newline)
+(exit)

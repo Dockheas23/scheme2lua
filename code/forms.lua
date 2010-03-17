@@ -146,4 +146,8 @@ procedures = {
     ["null?"] = "s2l_null";
     ["number?"] = "s2l_number";
     ["integer?"] = "s2l_integer";
+
+    -- Exit
+    ["exit"] = "s2l_exit";
+    ["quit"] = "s2l_exit";
 }

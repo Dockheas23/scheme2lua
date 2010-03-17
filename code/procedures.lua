@@ -153,6 +153,10 @@ function s2l_integer(obj)
     return scmBoolean:new(obj.scmType == "Number" and obj.value % 1 == 0)
 end
 
+function s2l_exit()
+    return nil
+end
+
 --
 -- END SCHEME FUNCTIONS
 --
