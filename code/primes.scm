@@ -17,5 +17,5 @@
           ((integer? (/ n k)) #f)
           (else (prime (+ k 1))))))))
 
-(primes 10000)
+(primes 5000)
 (exit)
