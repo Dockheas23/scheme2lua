@@ -1,5 +1,0 @@
-#!/bin/bash
-
-for testsuite in tests/*.lua; do
-    LUA_PATH='?.lua;tests/?.lua;'${LUA_PATH} lua $testsuite
-done
