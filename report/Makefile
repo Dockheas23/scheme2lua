@@ -1,6 +1,11 @@
 default:
 	pdflatex report.tex
 
+# Compile twice to resolve references
+resolve:
+	$(MAKE)
+	$(MAKE)
+
 dvi:
 	latex report.tex
 
