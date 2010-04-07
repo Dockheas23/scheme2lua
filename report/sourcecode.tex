@@ -1,0 +1,1144 @@
+\section{Core}
+\subsection{scheme2lua (Shell Script)}
+\begin{verbatim}
+#!/bin/bash
+
+cat dataTypes.lua
+cat procedures.lua
+for inputFile in $@; do
+    LUA_PATH='?.lua;'${LUA_PATH} lua scheme2lua.lua < $inputFile
+done
+\end{verbatim}
+
+\subsection{scheme2lua.lua}
+\begin{verbatim}
+require("parser")
+require("procedures")
+require("scanner")
+
+-- Output the preamble
+-- io.input("procedures.lua")
+-- io.write(io.read("*a"))
+io.input(io.stdin)
+
+-- The main loop for the translator
+scanner.init()
+local expression = parser.parse(scanner.nextToken())
+while expression ~= nil do
+    print(tostring(expression))
+    expression = parser.parse(scanner.nextToken())
+end
+\end{verbatim}
+
+\subsection{scanner.lua}
+\begin{verbatim}
+module(..., package.seeall)
+
+local stripLineComment, stripBlockComment, stripDatumComment
+local charCache
+local tokenCache
+
+--
+-- Return true if 'x' is a whitespace character
+--
+local function isWhiteSpace(x)
+    return string.match(x, "^[%s]$")
+end
+
+--
+-- Return true if 'x' is a delimiter
+-- (For symbols, numbers, characters, booleans and the dotted pair marker)
+--
+local function isDelimiter(x)
+    return isWhiteSpace(x) or x == ""
+    or string.match(x, "^[%[%]%(%)\"';]$")
+end
+
+--
+-- Return true if 'x' is a valid first character for a symbol
+-- TODO Escaped Hex and Unicode characters currently not supported
+--
+local function isInitialSymbolChar(x)
+    return string.match(x, "^[%a!&/:<=>~_%^%$%*%?%%]$")
+end
+
+--
+-- Return true if 'x' is a valid subsequent character for a symbol
+-- TODO Escaped Hex and Unicode characters currently not supported
+--
+local function isSubsequentSymbolChar(x)
+    return isInitialSymbolChar(x) or string.match(x, "^[%d%.%+%-@]$")
+end
+
+--
+-- Set up the scanner
+--
+function init()
+    charCache = nil
+    tokenCache = nil
+end
+
+--
+-- Remove and return the next input character
+--
+local function nextChar()
+    local result
+    if charCache then
+        result = charCache
+        charCache = nil
+    elseif not io.read(0) then
+        result = ""
+    else
+        result = io.read(1)
+    end
+    return result
+end
+
+--
+-- Return the next input character without removing it
+--
+local function peekChar()
+    if not charCache then
+        charCache = nextChar()
+    end
+    return charCache
+end
+
+--
+-- Remove and return the next token from the scanner
+--
+function nextToken()
+    local token
+    local value = nil
+    local c
+
+    if tokenCache then
+        token, value = tokenCache[1], tokenCache[2]
+        tokenCache = nil
+        return token, value
+    end
+
+    repeat
+        c = nextChar()
+        if c == ";" then
+            c = stripLineComment()
+        elseif c == "#" and peekChar() == "|" then
+            c = stripBlockComment()
+        elseif c == "#" and peekChar() == ";" then
+            c = stripDatumComment()
+        end
+    until not isWhiteSpace(c) or c == ""
+
+    if c == "" then
+        token = "EOF"
+
+    -- Check for peculiar symbols '+' and '-'
+    elseif (c == "+" or c == "-") and isDelimiter(peekChar()) then
+        token = c
+
+    -- Check for peculiar symbol '...'
+    elseif c == "." and peekChar() == "."
+        and nextChar() == "." and peekChar == "." then
+        nextChar()
+        token = "..."
+
+    elseif c == "-" and peekChar() == ">"   -- Another peculiar symbol
+        or isInitialSymbolChar(c) then      -- Regular symbol
+        local symbolValue = c
+        while isSubsequentSymbolChar(peekChar()) do
+            c = nextChar()
+            symbolValue = symbolValue .. c
+        end
+        token, value = "Symbol", symbolValue
+
+    elseif c == "#" and string.match(peekChar(), "[TtFf]") then
+        token = "Boolean"
+        if string.match(nextChar(), "[Tt]") then
+            value = true
+        else
+            value = false
+        end
+
+    elseif c == "#" and peekChar() == "\\" then
+        --
+        -- TODO Named and hex characters currently not supported
+        --
+        token = "Character"
+        nextChar()
+        value = nextChar()
+        
+    elseif c == "\"" then
+        --
+        -- TODO Escape characters and multiline strings currently not
+        -- supported
+        --
+        local stringValue = ""
+        c = nextChar()
+        while c ~= "\"" and c ~= "" do
+            stringValue = stringValue .. c
+            c = nextChar()
+        end
+        token, value = "String", stringValue
+
+    elseif c == "#" and string.match(peekChar(), "[bodxie]")
+        --
+        -- TODO Numbers not properly supported yet
+        --
+        or string.match(c, "[+%-%d]") then
+        local numberValue = string.byte(c) - string.byte("0")
+        while string.match(peekChar(), "%d") do
+            c = nextChar()
+            local digit = string.byte(c) - string.byte("0")
+            numberValue = 10 * numberValue + digit
+        end
+        token, value = "Number", numberValue
+        
+    elseif c == "#" and peekChar() == "(" then
+        nextChar()
+        token = "#("
+
+    elseif c == "#" and string.match(peekChar(), "[vV]")
+        and nextChar() and string.match(peekChar(), "[uU]") then
+        nextChar()
+        nextChar()
+        token = "#vu8("
+
+    else token = c
+        --
+        -- TODO Checking for invalid tokens currently not supported
+        --
+    end
+
+    return token, value
+end
+
+--
+-- Return the next token from the scanner without removing it
+--
+function peekToken()
+    if tokenCache then
+        return tokenCache[1], tokenCache[2]
+    else
+        local token, value = nextToken()
+        tokenCache = {token, value}
+        return token, value
+    end
+end
+
+--
+-- Remove a line comment from the scanner and return the next character
+--
+stripLineComment = function ()
+    local c
+    repeat
+        c = nextChar()
+    until c == "\n" or c == ""
+    return c
+end
+
+--
+-- Remove a block comment from the scanner and return the next character
+--
+stripBlockComment = function ()
+    local c
+    local nestLevel = 1
+    nextChar()
+    repeat
+        c = nextChar()
+        if c == "#" and nextChar() == "|" then
+            c = nextChar()
+            nestLevel = nestLevel + 1
+        elseif c == "|" and nextChar() == "#" then
+            c = nextChar()
+            nestLevel = nestLevel - 1
+        end
+    until nestLevel == 0 or c == ""
+    return c
+end
+
+--
+-- Remove a block comment from the scanner and return the next character
+-- TODO Datum comments not currently supported
+--
+stripDatumComment = function ()
+    return c
+end
+\end{verbatim}
+
+\subsection{parser.lua}
+\begin{verbatim}
+module(..., package.seeall)
+
+require("dataTypes")
+require("forms")
+require("scanner")
+
+local applyFunction, getArguments, readCompound
+
+--
+-- Return an iterator over the arguments in a Scheme list syntactic form
+--
+getArguments = function ()
+    return function ()
+        local token, value = scanner.peekToken()
+        if token == ")" or token == "]" then
+            return nil
+        end
+        return scanner.nextToken()
+    end
+end
+
+--
+-- Return the set of Scheme function arguments from the scanner as a
+-- string
+--
+gatherArguments = function (funcName)
+    if forms.specialArgs[funcName] then
+        return forms.specialArgs[funcName]()
+    else
+        local result = scmArglist:new()
+        for arg, argValue in getArguments() do
+            result:add(parse(arg, argValue))
+        end
+        if forms.wrappedArgs[funcName] then
+            return result:wrappedArgs()
+        end
+        return result:selfAsString()
+    end
+end
+
+--
+-- Apply the Scheme function 'func'
+--
+applyFunction = function (func)
+    local f = tostring(func)
+    if forms.specialSyntax[f] then
+        return forms.specialSyntax[f]()
+    end
+    return (forms.procedures[f] or f)
+    .. "(" .. gatherArguments(f) .. ")"
+end
+
+--
+-- Read and return a single scheme datum from the scanner
+--
+readDatum = function ()
+    local token, value = scanner.peekToken()
+    if token == "(" or token == "[" then
+        scanner.nextToken()   -- Remove initial bracket
+        local list = readList()
+        scanner.nextToken()   -- Remove ending bracket
+        return list
+    elseif token == "#(" or token == "#vu8(" then
+        return readVector()
+    end
+    scanner.nextToken()
+    return parse(token, value)
+end
+
+--
+-- Read and return a scheme list from the scanner (not including brackets)
+--
+readList = function ()
+    local token = scanner.peekToken()
+    if token == ")" or token == "]" then
+        return scmList:new()
+    elseif token == "." then
+        scanner.nextToken()
+        return readDatum()
+    else
+        return scmList:new{car = readDatum(); cdr = readList()}
+    end
+end
+
+--
+-- Read and return a scheme vector or bytevector from the scanner (including
+-- brackets)
+--
+readVector = function ()
+    local token = scanner.nextToken()
+    local objectType = scmVector
+    local value = {}
+    if token == "#vu8(" then
+        objectType = scmBytevector
+    end
+    token = scanner.peekToken()
+    while token ~= ")" do
+        table.insert(scmValue, readDatum())
+        token = scanner.peekToken()
+    end
+    scanner.nextToken()
+    return objectType:new(value)
+end
+
+--
+-- Evaluate the Scheme token 'token', with value 'value', and return an scmData
+-- encapsulating the appropriate Lua translation
+--
+function parse(token, value)
+    if token == "EOF" then
+        return nil
+    end
+
+    if token == "Boolean" then
+        return scmBoolean:new(value)
+
+    elseif token == "Character" then
+        return scmCharacter:new(value)
+
+    elseif token == "String" then
+        return scmString:new(value)
+
+    elseif token == "Number" then
+        return scmNumber:new(value)
+
+    elseif token == "Symbol" then
+        return scmSymbol:new(value)
+
+    elseif token == "(" or token == "[" then
+        local procedureValue = applyFunction(parse(scanner.nextToken()))
+        scanner.nextToken()
+        return scmProcedure:new(procedureValue)
+
+    elseif token == "'" then
+        return readDatum()
+
+    else
+        return scmData:new(token)
+    end
+end
+\end{verbatim}
+
+\subsection{forms.lua}
+\begin{verbatim}
+module(..., package.seeall)
+
+require("parser")
+require("scanner")
+
+--
+-- A utility function that returns the string representation of a sequence of
+-- scheme expressions (or "body"s) from the scanner, returning the last one.
+-- This is a common syntax for lambda, case-lambda, cond, let and others
+--
+local function bodyList()
+    local result = ""
+    local token = scanner.peekToken()
+    while token ~= ")" do
+        local expr = parser.parse(scanner.nextToken())
+        if scanner.peekToken() == ")" then
+            result = result .. "return "
+        end
+        result = result .. expr:selfAsString() .. "\n"
+        token = scanner.peekToken()
+    end
+    return result
+end;
+
+--
+-- A table of supported special syntaxes. Each is a function that returns the
+-- final output string for that syntax.
+--
+specialSyntax = {
+    ["cond"] = function ()
+        local result = "(function ()\n"
+            local token = scanner.peekToken()
+            local first = true
+            while token ~= ")" do
+                scanner.nextToken()  -- Remove initial bracket of clause
+                local test = parser.parse(scanner.nextToken())
+                if first then
+                    result = result .. "if "
+                    .. test:selfAsString() .. ".value then\n"
+                    first = false
+                elseif tostring(test) == "else" then
+                    result = result .. "else\n"
+                else
+                    result = result .. "elseif "
+                    .. test:selfAsString() .. ".value then\n"
+                end
+                local expr = scanner.peekToken()
+                if expr == "=>" then
+                    scanner.nextToken()
+                    local func = parser.parse(scanner.nextToken())
+                    result = result .. "return " .. func:selfAsString() ..
+                    "(" .. test:selfAsString() .. ")\n"
+                elseif expr == ")" then
+                    scanner.nextToken()
+                    result = result .. "return " .. test:selfAsString() .. "\n"
+                else
+                    result = result .. bodyList()
+                    scanner.nextToken()
+                end
+                token = scanner.peekToken()
+            end
+            return result .. "end end)()\n"
+        end;
+
+    ["define"] = function ()
+        -- TODO implement other forms of define
+        local assignee = parser.parse(scanner.nextToken())
+        local object = parser.parse(scanner.nextToken())
+        return assignee:selfAsString() .. " = " .. object:selfAsString()
+    end;
+
+    ["if"] = function ()
+        local result = "(function ()\nif "
+            .. parser.parse(scanner.nextToken()):selfAsString()
+            .. ".value then\nreturn"
+            .. parser.parse(scanner.nextToken()):selfAsString() .. "\n"
+        if scanner.peekToken() ~= ")" then
+            result = result .. "else\nreturn"
+            .. parser.parse(scanner.nextToken()):selfAsString() .. "\n"
+        end
+        return result .. "end end)()\n"
+    end;
+
+    ["lambda"] = function ()
+        local paramList = {}
+        local vararg = false
+        local params = parser.readDatum()
+        if params.scmType == "List" then
+            while params.value ~= nil do
+                table.insert(paramList, scmSymbol:new(params.value.car))
+                if params.value.cdr.scmType ~= "List" then
+                    vararg = params.value.cdr
+                    break
+                end
+                params = params.value.cdr
+            end
+        else
+            vararg = params
+        end
+        local result = "(function ("
+            .. scmArglist.fromTable(paramList):selfAsString()
+            .. (vararg and "..." or "") .. ")\n"
+            if vararg ~= false then
+                result = result .. "local " .. tostring(vararg)
+                .. " = scmList.fromTable{...}\n"
+            end
+            result = result .. bodyList() .. "end)"
+        return result
+    end;
+
+    ["let"] = function ()
+        local funcName = nil
+        if scanner.peekToken() == "Symbol" then
+            funcName = tostring(parser.parse(scanner.nextToken()))
+        end
+        scanner.nextToken() -- Opening '(' of var list
+        local varNames = {}
+        local varValues = {}
+        local token = scanner.peekToken()
+        while token ~= ")" do
+            scanner.nextToken() -- Opening '(' of var definition
+            table.insert(varNames, parser.parse(scanner.nextToken()))
+            table.insert(varValues, parser.parse(scanner.nextToken()))
+            scanner.nextToken() -- Closing ')' of var definition
+            token = scanner.peekToken()
+        end
+        scanner.nextToken() -- Closing ')' of var list
+        local funcDef = "(function "
+            .. "(" .. scmArglist.fromTable(varNames):selfAsString() .. ")\n"
+            .. bodyList() .. "end)"
+        local args = scmArglist.fromTable(varValues):selfAsString()
+        if funcName then
+            return "(function ()\n" .. funcName .. " = " .. funcDef
+                .. "\nreturn " .. funcName .. "(" .. args .. ") end)()\n"
+        else
+            return funcDef .. "(" .. args .. ")\n"
+        end
+    end;
+}
+
+--
+-- A table for scheme functions that need all of their arguments wrapped in
+-- functions. This prevents the arguments from being fully evaluated and is
+-- useful for short-circuit operations
+--
+wrappedArgs = {
+    ["and"] = true;
+    ["or"] = true;
+}
+
+--
+-- A table for scheme functions that need their arguments collected in a
+-- non-standard way. Each is a function that returns the argument list as a
+-- string.
+--
+specialArgs = {
+    ["quote"] = function ()
+        return parser.readDatum():selfAsString()
+    end;
+}
+
+--
+-- A table of the supported Scheme procedures
+--
+procedures = {
+    ["cond"] = "s2l_cond";
+    ["quote"] = "s2l_quote";
+
+    ["cons"] = "s2l_cons";
+    ["car"] = "s2l_car";
+    ["cdr"] = "s2l_cdr";
+    ["list"] = "s2l_list";
+    ["length"] = "s2l_length";
+    ["filter"] = "s2l_filter";
+
+    -- Useful output routines
+    ["display"] = "s2l_display";
+    ["newline"] = "s2l_newline";
+
+    -- Arithmetic operators
+    ["+"] = "s2l_arithmeticPlus";
+    ["-"] = "s2l_arithmeticMinus";
+    ["*"] = "s2l_arithmeticMultiply";
+    ["/"] = "s2l_arithmeticDivide";
+
+    -- Relational operators
+    ["<"] = "s2l_lessThan";
+    ["<="] = "s2l_lessThanOrEqual";
+    ["="] = "s2l_equals";
+    [">"] = "s2l_greaterThan";
+    [">="] = "s2l_greaterThanOrEqual";
+    ["eqv?"] = "s2l_equals";   -- FIXME
+
+    -- Boolean operators
+    ["and"] = "s2l_and";
+    ["or"] = "s2l_or";
+    ["not"] = "s2l_not";
+
+    -- Predicates
+    ["pair?"] = "s2l_pair";
+    ["boolean?"] = "s2l_boolean";
+    ["null?"] = "s2l_null";
+    ["number?"] = "s2l_number";
+    ["integer?"] = "s2l_integer";
+
+    -- Exit
+    ["exit"] = "s2l_exit";
+    ["quit"] = "s2l_exit";
+}
+\end{verbatim}
+
+\subsection{dataTypes.lua}
+\begin{verbatim}
+--
+-- SCHEME TO LUA TRANSLATOR
+-- Preamble File 1
+-- This file contains lua container tables for scheme data
+--
+
+--
+-- Container for basic scheme data. Actual types inherit from this.
+-- Noteworthy methods:
+-- selfAsString - an (overrideable) object function that returns a string of
+-- lua code that will recreate that object
+-- valueAsString - an (overrideable) object function that returns the output
+-- representation of that scheme object
+--
+scmData = {
+    scmType = "Data";
+    create = function (self, o)
+        local result = o or {}
+        setmetatable(result, self)
+        self.__index = self
+        self.__tostring = self.valueAsString or scmData.valueAsString
+        return result
+    end;
+    new = function (self, item)
+        return self:create{value = item}
+    end;
+    selfAsString = function (self)
+        local funcName = "scm" .. self.scmType .. ":new"
+        return funcName .. "("..tostring(self.value)..")"
+    end;
+    valueAsString = function (self)
+        return tostring(self.value)
+    end;
+}
+
+--
+-- This wraps scheme function arguments with an iterative interface
+--
+scmArglist = scmData:create{
+    scmType = "Arglist";
+    currentIndex = 1;
+    numElements = 0;
+    add = function (self, item)
+        if self.value == nil then
+            self.value = {}
+        end
+        self.numElements = self.numElements + 1
+        self.value[self.numElements] = item
+    end;
+    hasNext = function (self)
+        return self.currentIndex > self.numElements
+    end;
+    nextArg = function (self)
+        local result = self.value[self.currentIndex]
+        self.currentIndex = self.currentIndex + 1
+        return result
+    end;
+    itemsAsString = function (self)
+        local result = ""
+        for _, item in ipairs(self.value) do
+            result = result .. item:selfAsString() .. ", "
+        end
+        if result ~= "" then
+            result = string.sub(result, 1, -3)
+        end
+        return result
+    end;
+    selfAsString = function (self)
+        if self.numElements == 0 then
+            return ""
+        end
+        return self:itemsAsString()
+    end;
+    wrappedArgs = function (self)
+        if self.numElements == 0 then
+            return ""
+        end
+        local result = ""
+        for _, item in ipairs(self.value) do
+            result = result .. "(function () return " .. item:selfAsString()
+                .. " end), "
+        end
+        if result ~= "" then
+            result = string.sub(result, 1, -3)
+        end
+        return result
+    end;
+    fromTable = function (table)
+        local result = scmArglist:new()
+        for _, value in ipairs(table) do
+            result:add(value)
+        end
+        return result
+    end;
+}
+
+--
+-- Data type to hold a scheme procedure
+--
+scmProcedure = scmData:create{
+    scmType = "Procedure";
+    selfAsString = function (self)
+        return tostring(self.value);
+    end;
+}
+
+--
+-- Data type to hold a scheme symbol
+--
+scmSymbol = scmData:create{
+    scmType = "Symbol";
+    selfAsString = function (self)
+        return self:valueAsString();
+    end;
+}
+
+--
+-- Data type to hold a scheme boolean
+--
+scmBoolean = scmData:create{
+    scmType = "Boolean";
+    valueAsString = function (self)
+        return "#" .. (self.value and "t" or "f")
+    end;
+}
+
+--
+-- Data type to hold a scheme character
+--
+scmCharacter = scmData:create{
+    scmType = "Character";
+    selfAsString = function (self)
+        return "scmCharacter:new(\"" .. self.value .. "\")"
+    end;
+}
+
+--
+-- Data type to hold a scheme string
+--
+scmString = scmData:create{
+    scmType = "String";
+    selfAsString = function (self)
+        return "scmString:new(\"" .. self.value .. "\")"
+    end;
+}
+
+--
+-- Data type to hold a scheme number
+--
+scmNumber = scmData:create{
+    scmType = "Number";
+}
+
+--
+-- Data type to hold a scheme list
+--
+scmList = scmData:create{
+    scmType = "List";
+    fromTable = function (table)
+        return scmList.fromTableIndex(table, 1)
+    end;
+    fromTableIndex = function (table, currentIndex)
+        if table[currentIndex] == nil then
+            return scmList:new()
+        elseif tostring(table[currentIndex]) == "." then
+            return table[currentIndex + 1]
+        else
+            return scmList:new{
+                car = table[currentIndex];
+                cdr = scmList.fromTableIndex(table, currentIndex + 1)
+            }
+        end
+    end;
+    fromArglist = function (args)
+        return scmList.fromTableIndex(args.value, args.currentIndex)
+    end;
+    itemsAsString = function (self)
+        if self.value == nil then
+            return ""
+        end
+        local car = self.value.car
+        local cdr = self.value.cdr
+        if cdr.scmType ~= "List" then
+            return tostring(car) .. " . " .. tostring(cdr)
+        elseif cdr.value == nil then
+            return tostring(car)
+        else
+            return tostring(car) .. " " .. cdr:itemsAsString()
+        end
+    end;
+    selfAsString = function (self)
+        if self.value == nil then
+            return "scmList:new()"
+        end
+        return "scmList:new{\ncar = " .. self.value.car:selfAsString()
+        .. ";\ncdr = " .. self.value.cdr:selfAsString() .. "}"
+    end;
+    valueAsString = function (self)
+        return "(" .. self:itemsAsString() .. ")"
+    end;
+}
+
+--
+-- Data type to hold a scheme vector
+--
+scmVector = scmData:create{
+    scmType = "Vector";
+    itemsAsString = function (self)
+        local result = ""
+        for _, v in ipairs(self.value) do
+            result = result .. tostring(v) .. " "
+        end
+        if result ~= "" then
+            result = string.sub(result, 1, -2)
+        end
+        return result
+    end;
+    valueAsString = function (self)
+        return "#(" .. self:itemsAsString() .. ")"
+    end;
+}
+
+--
+-- Data type to hold a scheme bytevector
+--
+scmBytevector = scmVector:create{
+    scmType = "Bytevector";
+    valueAsString = function (self)
+        return "#vu8(" .. self:itemsAsString() .. ")"
+    end;
+}
+\end{verbatim}
+
+\subsection{procedures.lua}
+\begin{verbatim}
+--
+-- SCHEME TO LUA TRANSLATOR
+-- Preamble File 2
+-- This file contains the lua implementation of the scheme functions
+--
+
+--
+-- BEGIN SCHEME FUNCTIONS
+--
+
+function s2l_quote(obj)
+    return obj
+end
+
+function s2l_cons(obj1, obj2)
+    return scmList:new{car = obj1; cdr = obj2}
+end
+
+function s2l_car(pair)
+    return pair.value.car
+end
+
+function s2l_cdr(pair)
+    return pair.value.cdr
+end
+
+function s2l_list(...)
+    return scmList.fromTable{...}
+end
+
+function s2l_length(list)
+    local result = 0
+    while not s2l_null(list).value do -- FIXME Clean up (metamethods maybe)
+        result = result + 1
+        list = s2l_cdr(list)
+    end
+    return scmNumber:new(result)
+end
+
+function s2l_filter(proc, list)
+    if s2l_null(list).value then -- FIXME Clean up (metamethods maybe)
+        return scmList:new()
+    elseif proc(s2l_car(list)).value then -- FIXME Clean up (metamethods maybe)
+        return s2l_cons(s2l_car(list), s2l_filter(proc, s2l_cdr(list)))
+    else
+        return s2l_filter(proc, s2l_cdr(list))
+    end
+end
+
+function s2l_display(obj)
+    io.write(tostring(obj))
+end
+
+function s2l_newline()
+    io.write("\n")
+end
+
+function s2l_arithmeticPlus(...)
+    local result = 0
+    for _, item in ipairs{...} do
+        result = result + item.value
+    end
+    return scmNumber:new(result)
+end
+
+-- FIXME
+function s2l_arithmeticMinus(a, b)
+    return scmNumber:new(a.value - b.value)
+end
+
+function s2l_arithmeticMultiply(...)
+    local result = 1
+    for _, item in ipairs{...} do
+        result = result * item.value
+    end
+    return scmNumber:new(result)
+end
+
+-- FIXME
+function s2l_arithmeticDivide(a, b)
+    return scmNumber:new(a.value / b.value)
+end
+
+function s2l_lessThan(n1, n2)
+    return scmBoolean:new(n1.value < n2.value)
+end
+
+function s2l_lessThanOrEqual(n1, n2)
+    return scmBoolean:new(n1.value <= n2.value)
+end
+
+function s2l_equals(n1, n2)
+    return scmBoolean:new(n1.value == n2.value)
+end
+
+function s2l_greaterThan(n1, n2)
+    return scmBoolean:new(n1.value > n2.value)
+end
+
+function s2l_greaterThanOrEqual(n1, n2)
+    return scmBoolean:new(n1.value >= n2.value)
+end
+
+-- Short circuit
+function s2l_and(...)
+    local result = scmBoolean:new(true)
+    for _, f in ipairs{...} do
+        local item = f()
+        if item.value == false then
+            return scmBoolean:new(false)
+        else
+            result = item
+        end
+    end
+    return result
+end
+
+-- Short circuit
+function s2l_or(...)
+    for _, f in ipairs{...} do
+        local item = f()
+        if item.value then
+            return item
+        end
+    end
+    return scmBoolean:new(false)
+end
+
+function s2l_not(obj)
+    if obj.value == false then
+        return scmBoolean:new(true)
+    end
+    return scmBoolean:new(false)
+end
+
+function s2l_pair(obj)
+    return scmBoolean:new(obj.scmType == "List" and obj.value ~= nil)
+end
+
+function s2l_boolean(obj)
+    return scmBoolean:new(obj.scmType == "Boolean")
+end
+
+function s2l_null(obj)
+    return scmBoolean:new(obj.scmType == "List" and obj.value == nil)
+end
+
+function s2l_number(obj)
+    return scmBoolean:new(obj.scmType == "Number")
+end
+
+function s2l_integer(obj)
+    return scmBoolean:new(obj.scmType == "Number" and obj.value % 1 == 0)
+end
+
+function s2l_exit()
+    return nil
+end
+
+--
+-- END SCHEME FUNCTIONS
+--
+\end{verbatim}
+
+
+\section{Unit Tests}
+\subsection{run-tests (Shell Script)}
+\begin{verbatim}
+#!/bin/bash
+
+for testsuite in tests/*.lua; do
+    LUA_PATH='?.lua;tests/?.lua;'${LUA_PATH} lua $testsuite
+done
+\end{verbatim}
+
+\subsection{scannertest.lua}
+\begin{verbatim}
+require("scanner")
+
+--
+-- Create test input file
+--
+io.output("/tmp/s2ltest_chars.scm")
+io.write("(+ 1 2)\n")
+io.write("(display \"abc\")\n")
+io.close()
+
+io.output("/tmp/s2ltest_tokens.scm")
+io.write("(newline) ; This should print a newline\n")
+io.write("#| Commented out section\n")
+io.write("(+ 1 2)\n")
+io.write("(define x #| Nested #| Another nest |# block comment |# 5)\n")
+io.write("(display \"abc\")\n")
+io.write("End of commented out section |#\n")
+io.write("; Another one-line comment|#\n")
+io.write("(lambda (->x) (+ ->x 1))\n")
+io.write("(* (+ 3 5) 2 3)\n")
+io.close()
+
+io.output(io.stdout)
+
+characters = {
+    "(", "+", " ", "1", " ", "2", ")", "\n",
+    "(", "d", "i", "s", "p", "l", "a", "y", " ",
+    "\"", "a", "b", "c", "\"", ")", "\n", 
+}
+
+tokens = {
+    {"("}, {"symbol", "newline"}, {")"},
+    {"("}, {"symbol", "lambda"},
+	{"("}, {"symbol", "->x"}, {")"},
+	{"("}, {"+"}, {"symbol", "->x"}, {"number", 1}, {")"},
+    {")"},
+    {"("}, {"symbol", "*"},
+	{"("}, {"+"}, {"number", 3}, {"number", 5}, {")"},
+	{"number", 2}, {"number", 3},
+    {")"}
+}
+
+--
+-- Run tests
+--
+
+-- Test char functions
+io.input("/tmp/s2ltest_chars.scm")
+scanner.init()
+local index = 1
+while scanner.peekChar() ~= "" do
+    assert(scanner.peekChar() == characters[index]
+    and scanner.nextChar() == characters[index])
+    index = index + 1
+end
+
+-- Test token functions
+io.input("/tmp/s2ltest_tokens.scm")
+scanner.init()
+index = 1
+while scanner.peekToken() ~= "EOF" do
+    local token, value = scanner.peekToken()
+    assert(token == tokens[index][1] and value == tokens[index][2])
+    token, value = scanner.nextToken()
+    assert(token == tokens[index][1] and value == tokens[index][2])
+    index = index + 1
+end
+
+print("Scannertest: All tests passed")
+\end{verbatim}
+
+\subsection{parsertest.lua}
+\begin{verbatim}
+require("parser")
+require("scanner")
+
+--
+-- Create test input file
+--
+io.output("/tmp/s2ltest_parser.scm")
+io.write("display \"abc\"\n")
+io.write("123 #\\l\n")
+io.write("#f #t")
+io.write("5 (\"a\" (1 2 3) #t #\\m)")
+io.close()
+
+io.output(io.stdout)
+
+--
+-- Run tests
+--
+io.input("/tmp/s2ltest_parser.scm")
+scanner.init()
+if assert(parser.evaluate(scanner.peekToken()) == "display") 
+    and assert(parser.evaluate(scanner.nextToken()) == "display") 
+    and assert(parser.evaluate(scanner.nextToken()) == "\"abc\"") 
+    and assert(parser.evaluate(scanner.nextToken()) == 123) 
+    and assert(parser.evaluate(scanner.nextToken()) == "\"l\"") 
+    and assert(parser.evaluate(scanner.nextToken()) == false) 
+    and assert(parser.evaluate(scanner.nextToken()) == true) 
+    and assert(parser.readDatum() == 5) 
+    and assert(parser.readDatum()[2][3] == 3) 
+    then
+    print("Parsertest: All tests passed")
+end
+\end{verbatim}

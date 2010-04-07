@@ -1,4 +1,6 @@
-\documentclass{report}
+\documentclass[a4paper,10pt]{report}
+
+\usepackage{lipsum}
 
 \begin{document}
 \title{A Scheme To Lua Translator}
@@ -7,23 +9,49 @@
 
 \tableofcontents
 
-\chapter{Background}
+\chapter{Background (10 pages)}
+
 \input{intro}
 \input{about-scheme}
 \input{about-lua}
 
-\chapter{The Translator}
+\lipsum[1-20]
 
-\chapter{Benchmarks}
+\chapter{Project Development (6 pages)}
 
-\chapter{Conclusion}
+\lipsum[1-20]
+
+
+\chapter{The Translator (20 pages)}
+
+The initial approach involved finding for each construct in Scheme, its most
+precise and efficient representation in Lua. In French parlance, this is nicely
+described by the phrase ``le mot juste'', meaning ``the precise word'' or ``the
+perfect word'', and it brings to mind the image of an expert translator of
+human languages, who knows through experience how to accurately convey the
+intended semantic of each phrase from one language to another for a particular
+context.  This seemed like a reasonable and credible way of proceeding given
+the small size of the core of the Scheme language.
+
+\lipsum[21-50]
+
+
+\chapter{Benchmarks (5 pages)}
+
+\lipsum[51-70]
+
+
+\chapter{Conclusion (8 pages)}
+
 \input{conclusion}
+\lipsum[71-100]
+
 
 \appendix
 
-\chapter{Methodology}
-\section{Test}
-Blah blah blah
+\chapter{Program Source Code}
+\input{sourcecode}
+
 
 \chapter{Open Day}
 Aww yeah!!
