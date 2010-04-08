@@ -1,14 +1,7 @@
 \documentclass[twoside,a4paper,12pt]{report}
 
-% TODO Remove this package and all \lipsum commands when finished
-\usepackage{lipsum}
-
 \begin{document}
 
-
-%
-% Title Page, Abstract & Table Of Contents
-%
 
 \title{A Scheme To Lua Translator \\
 {\small 4th Year Computer Science Project} \\
@@ -16,27 +9,14 @@
 \author{Student: George Boyle \\ \\
 Supervisor: Dr.\ Joseph Manning \\
 Second Reader: Prof.\ Gregory Provan}
+
+
+%
+% Title Page, Abstract & Table Of Contents
+%
+
 \maketitle
-
-\begin{abstract}
-\lipsum[1]
-
-End of abstract \\ \\ \\
-
-\noindent\textbf{Declaration:}
-
-I hereby declare that, unless specifically stated otherwise, all work contained
-in this report is my own, and that it has not been submitted in whole or in part
-in connection with any other assignment in UCC or any other organisation.
-\\ \\
-
-\noindent\textbf{Signed:}
-\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-\\ \\
-\noindent\textbf{Date:}
-\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
-\end{abstract}
-
+\input{abstract}
 \tableofcontents
 
 
@@ -46,36 +26,31 @@ in connection with any other assignment in UCC or any other organisation.
 
 \chapter{Background (10 pages)}
 \input{background}
-\lipsum[1-5]
 
 \chapter{Project Administration}
 \input{project-admin}
-\lipsum[6-10]
 
 \chapter{The Translator (20 pages)}
 \input{translator}
-\lipsum[11-20]
 
 \chapter{Benchmarks (5 pages)}
 \input{benchmarks}
-\lipsum[21-30]
 
 \chapter{Conclusion (8 pages)}
 \input{conclusion}
-\lipsum[31-40]
 
 
 %
 % Appendices
 %
 
-\appendix
+%\appendix
 
-\chapter{Program Source Code}
-\input{sourcecode}
+%\chapter{Program Source Code}
+%\input{sourcecode}
 
-\chapter{Open Day Materials}
-\input{openday}
+%\chapter{Open Day Materials}
+%\input{openday}
 
 
 %
