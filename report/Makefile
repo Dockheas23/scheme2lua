@@ -1,10 +1,13 @@
 default:
+	$(MAKE) resolve
+
+once:
 	pdflatex report.tex
 
 # Compile twice to resolve references
 resolve:
-	$(MAKE)
-	$(MAKE)
+	$(MAKE) once
+	$(MAKE) once
 
 dvi:
 	latex report.tex
