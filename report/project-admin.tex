@@ -9,7 +9,7 @@ methodologies were not rigorously applied. It was also clear from the beginning
 that it would not be possible to have a thoroughly complete translator in the
 available time. As a result, the project followed the course of a prioritised
 list of objectives, which were followed in a serial fashion for the most part.
-Certain minor features were worked on in parallel, and the source control
+Certain minor features were worked on in parallel, and the source code
 management system facilitated that, but this was largely the exception for two
 reasons: firstly each feature needed to be completed in full to avoid breaking
 the entire program; and secondly, there was significant linear dependency
@@ -20,11 +20,30 @@ between features.
 
 \subsection{Text Editor}
 
-\subsection{Source Control Management}
+\subsection{Version Control}
 
-Bazaar\footnote{http://bazaar-vcs.org/}
+It was decided that the project source code should be managed using VCS
+software, rather than do it manually. This had numerous advantages, including
+keeping a record of the project's history, data backup and synchronisation
+across computers. A number of tools were considered. One was
+\emph{Subversion}\footnote{http://subversion.apache.org/}, a centralised version
+control system. This was a natural choice as it is available on the lab
+computers, and there is an svn server running on \emph{cosmos.ucc.ie}. However,
+the flood of November 2009 and its effect on the availability of \emph{cosmos}
+meant that an alternative needed to be found.
 
-Git\footnote{http://git-scm.com/}
+This presented an opportunity to try a modern distributed version control
+system. The first one to be used was
+\emph{Bazaar}\footnote{http://bazaar-vcs.org/}, which is closely associated with
+Canonical Ltd.\ and the Ubuntu operating system. It has some commands in common
+with Subversion, making it easy to transfer.
+
+\emph{Git}\footnote{http://git-scm.com/} is another open source distributed
+version control system, developed by Linus Torvalds in 2005 to track the source
+code of the Linux kernel, replacing the proprietary \emph{Bitkeeper} system.
+
+The Git repository for this project can be found at:
+\begin{center}http://github.com/Dockheas23/scheme2lua\end{center}
 
 \subsection{Typesetter}
 
