@@ -1,7 +1,38 @@
+Here goes an introduction to this chapter and the sections to come.
+
+
 \section{Requirements}
 
+Being a project that is experimental and research-oriented in style, the
+requirements could not be rigidly determined in fine detail at the outset, or
+even at later stages. It was certainly possible and important, however, to
+establish a set of high-level functional and non-functional requirements and 
+guiding principles for the project.
+
+\subsection{Functional Requirements}
+
+\begin{itemize}
+\item The program must take a Scheme program as input and output a Lua program
+as output
+\item When the Lua output from the program is run through a Lua interpreter, it
+must produce the same output as the Scheme program run natively through a Scheme
+interpreter.
+\end{itemize}
+
+\subsection{Non-functional Requirements}
+
+\begin{itemize}
+\item The running time of the resulting Lua program should be as short as
+possible
+\item The output of the program should be readable Lua code as much as possible
+\end{itemize}
+
+In particular, the non-functional requirements, though in conflict with each
+other to a certain extent, pointed to simplicity as a primary design objective.
 
 \section{Design And Implementation}
+
+\subsection{First Approach}
 
 The initial approach involved finding for each construct in Scheme, its most
 precise and efficient representation in Lua. In French parlance, this is nicely
@@ -12,11 +43,122 @@ intended semantic of each phrase from one language to another for a particular
 context.  At first, this seemed like a reasonable and credible way of
 proceeding given the small size of the core of the Scheme language.
 
+However it soon became apparent that this approach would quickly become
+unwieldy, as the range of various contexts in which an expression could appear
+often meant the optimal translation needed to be adjusted slightly. An example
+of this is\ldots
+
+\subsection{Second Approach}
+This approach was more structured in its implementation.
+
+
+\section{Features}
+
+\subsection{Data Types}
+
+\begin{itemize}
+\item Atomic Data
+\begin{itemize}
+\item Booleans
+\item Numbers
+\item Characters
+\item Strings
+\end{itemize}
+\item Compound Data
+\begin{itemize}
+\item Lists
+\item Vectors
+\item Bytevectors
+\end{itemize}
+\end{itemize}
+
+We will look at each of these in turn to identify what commonalities or
+differences between Scheme and Lua could affect the translation.
+
+\subsubsection{Booleans}
+
+Being a very simple data type and having only two possible values, booleans are
+easily translated. In Lua, the values are \texttt{true} and \texttt{false},
+corresponding to \texttt{\#t} and \texttt{\#f} respectively in Scheme.
+
+\subsubsection{Numbers}
+
+Scheme has a very rich syntax for describing numbers. This is in contrast with
+Lua, in which the double precision floating point number is the only
+numeric type~\cite[p.10]{luabook}.
+
+\subsubsection{Strings}
+
+Scheme strings are more restrictive than Lua strings. ''Lua is
+eight-bit clean and its strings may contain characters with any numeric code,
+including embedded zeros. This means that you can store any binary data into a
+string''~\cite[p.11]{luabook}.
+
+\subsubsection{Lists}
+
+Lists are the primary data type in Scheme, and there is a duality in the
+representation of list data and the core syntax of a Scheme program.
+
+\subsubsection{Vectors}
+
+\subsubsection{Bytevectors}
+
+\subsection{Branching}
+
+Scheme has a number of constructs for branching.
+
+\subsection{Looping}
+
+Including tail recursion
+
+\subsection{Continuations}
+
+One shot continuations using coroutines
+
+\subsection{Syntax Extension}
+
+syntax-rules etc.
+
 
 \section{Components}
 
+\subsection{Main Program}
+
+Consists of a shell script that calls the main scheme2lua.lua program, which
+contains the main loop.
+
 \subsection{The Scanner}
+
+Include UML diagram of scanner
+
+Though it used a slightly different implementation, it was created borrowing
+heavily from the ideas and techniques used in the SAL interpreter~\cite{sal}
 
 \subsection{The Parser}
 
+Include UML diagram of parser
+
 \subsection{Intermediate Data Types}
+
+Include diagram of the Lua representation of the Scheme data 
+
+\section{Testing}
+
+Unit Tests were performed on the two main components of the translator, namely
+the scanner and the parser. Once they were working properly, testing consisted
+mainly of extending the functionality of the translator to correctly translate a
+series of example Scheme programs.
+
+\subsection{Unit Tests}
+
+\subsection{Scheme Programs}
+
+
+\section{The Operation Of A Translated Program}
+
+The output of the translator consists of two main parts: a library of supported
+Scheme functions and operations, written in Lua; and the translated output of
+the the scheme input program, which uses the library to carry out its purpose.
+All of the functions of the library deal with data in the intermediate form, as
+output by the parser. That is to say that all function arguments and all of the
+return values are in this form.

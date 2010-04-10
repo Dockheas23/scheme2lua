@@ -3,3 +3,6 @@
 *.dvi
 *.pdf
 *.toc
+*.brf
+*.out
+*.swp
