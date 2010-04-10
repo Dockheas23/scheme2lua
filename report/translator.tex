@@ -5,8 +5,8 @@ Here goes an introduction to this chapter and the sections to come.
 
 Being a project that is experimental and research-oriented in style, the
 requirements could not be rigidly determined in fine detail at the outset, or
-even at later stages. It was certainly possible and important, however, to
-establish a set of high-level functional and non-functional requirements and 
+even at later stages. However it was certainly possible, and indeed important,
+to establish a set of high-level functional and non-functional requirements and
 guiding principles for the project.
 
 \subsection{Functional Requirements}
@@ -30,6 +30,7 @@ possible
 In particular, the non-functional requirements, though in conflict with each
 other to a certain extent, pointed to simplicity as a primary design objective.
 
+
 \section{Design And Implementation}
 
 \subsection{First Approach}
@@ -49,6 +50,14 @@ often meant the optimal translation needed to be adjusted slightly. An example
 of this is\ldots
 
 \subsection{Second Approach}
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{overview.png}
+\caption{Overall structure of the translator}
+\label{fig:overview}
+\end{figure}
+
 This approach was more structured in its implementation.
 
 
@@ -129,18 +138,41 @@ contains the main loop.
 
 \subsection{The Scanner}
 
-Include UML diagram of scanner
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{scannerUML.png}
+\caption{A UML class diagram of the scanner component}
+\label{fig:scannerUML}
+\end{figure}
 
-Though it used a slightly different implementation, it was created borrowing
-heavily from the ideas and techniques used in the SAL interpreter~\cite{sal}
+Figure~\ref{fig:scannerUML} shows the structure of the scanner in UML class
+diagram form. Though it used a slightly different implementation, it was created
+borrowing heavily from the ideas and techniques used in the SAL
+interpreter~\cite{sal}
 
 \subsection{The Parser}
 
-Include UML diagram of parser
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{parserUML.png}
+\caption{A UML class diagram of the parser component}
+\label{fig:parserUML}
+\end{figure}
+
+See figure~\ref{fig:parserUML} for a diagrammatic representation of the parser
+component.
 
 \subsection{Intermediate Data Types}
 
-Include diagram of the Lua representation of the Scheme data 
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{scmDataUML.pdf}
+\caption{The structure of the intermediate data types}
+\label{fig:scmDataUML}
+\end{figure}
+
+As can be seen in figure~\ref{fig:scmDataUML}
+
 
 \section{Testing}
 

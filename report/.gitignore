@@ -1,7 +1,7 @@
+report.pdf
 *.aux
 *.log
 *.dvi
-*.pdf
 *.toc
 *.brf
 *.out
