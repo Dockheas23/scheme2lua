@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt,twoside,openright]{report}
+\documentclass[a4paper,12pt,twoside,openany]{report} % TODO make openright
 
 \usepackage{graphicx}
 \usepackage[pdfauthor={George Boyle},%
@@ -37,16 +37,18 @@ Second Reader: Prof.\ Gregory Provan}
 
 \chapter{Background (10 pages)}
 \input{background}
+\end{comment} % TODO Remove this
 
-\chapter{Project Administration (5 pages)}
+\chapter{Project Administration}
 \input{project-admin}
+
 \chapter{The Translator}
 \input{translator}
-\end{comment} % TODO Remove this
+
 \chapter{Testing}
 \input{testing}
-\begin{comment} % TODO Remove this
 
+\begin{comment} % TODO Remove this
 \chapter{Conclusion (5 pages)}
 \input{conclusion}
 
@@ -62,7 +64,7 @@ Second Reader: Prof.\ Gregory Provan}
 
 \chapter{Open Day Materials}
 \input{openday}
-\end{comment} % TODO Remove this
+
 
 %
 % References
@@ -70,5 +72,6 @@ Second Reader: Prof.\ Gregory Provan}
 
 \input{references}
 
+\end{comment} % TODO Remove this
 
 \end{document}
