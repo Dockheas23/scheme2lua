@@ -15,4 +15,4 @@ dvi:
 .PHONY: clean
 
 clean:
-	rm -f *.aux *.log *.dvi *.pdf
+	rm -f *.aux *.log *.dvi report.pdf
