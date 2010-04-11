@@ -1,0 +1,37 @@
+Unit Tests were performed on the two main components of the translator, namely
+the scanner and the parser. Once they were working properly, testing consisted
+mainly of extending the functionality of the translator to correctly translate a
+series of example Scheme programs.
+
+\section{Unit Tests}
+
+
+\section{Scheme Programs}
+
+
+\section{Speed Tests}
+
+\begin{table}
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+& lua & luaJIT & scm \\
+\hline
+First 1000 Primes & 0:16 & 0:09 & 0:02 \\ \hline
+First 2000 Primes & 1:13 & 0:41 & 0:09 \\ \hline
+First 5000 Primes & 8:26 & 4:49 & 1:02 \\ \hline
+\end{tabular}
+\caption{Test table}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+& lua & luaJIT & scm \\
+\hline
+Primes Up To 10000 & 0:37 & 0:16 & 0:03 \\ \hline
+Primes Up To 20000 & FAIL & 1:13 & FAIL \\ \hline
+\end{tabular}
+\caption{Test table}
+\end{table}
