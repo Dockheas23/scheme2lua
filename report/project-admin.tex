@@ -1,57 +1,26 @@
+Project development took place from late November 2009 to late March 2010. As
+the period progressed, there was a cumulative increasing focus on the project
+work, as the workload from other assignments receded. Work was characterised by
+regular meetings with the supervisor, with a number of periodic code
+submissions.
+
+Given that this was a reasonably small, single-person project, and somewhat
+experimental in nature, formal project management methodologies were not
+rigorously applied. Instead it was managed through constant attention, with the
+help of some software tools.
+
+
 \section{Methodology}
 
-
-\section{Project Management}
-
-Given the experimental nature of the project, and the fact that it was a single
-person project, there was no fixed schedule and formal project management
-methodologies were not rigorously applied. It was also clear from the beginning
-that it would not be possible to have a thoroughly complete translator in the
-available time. As a result, the project followed the course of a prioritised
-list of objectives, which were followed in a serial fashion for the most part.
-Certain minor features were worked on in parallel, and the source code
-management system facilitated that, but this was largely the exception for two
-reasons: firstly each feature needed to be completed in full to avoid breaking
-the entire program; and secondly, there was significant linear dependency
-between features.
-
-
-\section{Tools}
-
-\subsection{Text Editor}
-
-\subsection{Version Control}
-
-It was decided that the project source code should be managed using VCS
-software, rather than do it manually. This had numerous advantages, including
-keeping a record of the project's history, data backup and synchronisation
-across computers. A number of tools were considered. One was
-\emph{Subversion}\footnote{http://subversion.apache.org/}, a centralised version
-control system. This was a natural choice as it is available on the lab
-computers, and there is an svn server running on \emph{cosmos.ucc.ie}. However,
-the flood of November 2009 and its effect on the availability of \emph{cosmos}
-meant that an alternative needed to be found.
-
-This presented an opportunity to try a modern distributed version control
-system. The first one to be used was
-\emph{Bazaar}\footnote{http://bazaar-vcs.org/}, which is closely associated with
-Canonical Ltd.\ and the Ubuntu operating system. It has some commands in common
-with Subversion, making it easy to transfer.
-
-\emph{Git}\footnote{http://git-scm.com/} is another open source distributed
-version control system, developed by Linus Torvalds in 2005 to track the source
-code of the Linux kernel, replacing the proprietary \emph{Bitkeeper} system.
-
-The Git repository for this project can be found at:
-\begin{center}http://github.com/Dockheas23/scheme2lua\end{center}
-
-\subsection{Typesetter}
-
-This report was written and typeset using \LaTeX.
-
-\subsection{Graphics, Diagrams \& Presentation}
-
-Openoffice Draw, Dia and Openoffice Presentation
+The project followed a mainly evolutionary lifecycle. It was also clear from the
+beginning that it would not be possible to have a thoroughly complete translator
+in the available time.  As a result, the project followed the course of a
+prioritised list of objectives, which were followed in a serial fashion for the
+most part.  Certain minor features were worked on in parallel, and the source
+code management system facilitated that, but this was largely the exception for
+two reasons: firstly each feature needed to be completed in full to avoid
+breaking the entire program; and secondly, there was significant linear
+dependency between features.
 
 
 \section{Supervisor Meetings}
@@ -71,4 +40,104 @@ The frequency of the meetings helped the momentum of the project, and it meant
 that potential pitfalls could be confronted and dealt with on a regular basis.
 Revisiting and revising objectives every week made it flexibile and dynamic,
 which facilitated exploration of specific areas when necessary.
+
+
+\section{Tools}
+
+\subsection{Text Editor}
+
+The \emph{vim}\footnote{\url{http://www.vim.org}} editor was used to create and
+edit all of the source code. Vim stands for Vi-Improved, a feature-rich version
+of the old UNIX editor. It is widely available, versatile and highly
+configurable. Among other things, it contains automatic indenting and syntax
+highlighting making it more than adequate for a project such as this. In any
+case, the volume of code didn't warrant a large Integrated Development
+Environment.
+
+\subsection{Version Control}
+
+It was decided that the project source code should be managed using
+VCS\footnote{Version Control System} software, rather than do it manually. This
+had numerous advantages, including keeping a record of the project's history,
+data backup and synchronisation across computers. A number of tools were
+considered. One was
+\emph{Subversion}\footnote{\url{http://subversion.apache.org/}}, a centralised
+version control system. This was a natural choice as it is available on the lab
+computers, and there is an svn repository running on \emph{cosmos.ucc.ie}.
+However, the flood of November 2009 and its effect on the availability of
+\emph{cosmos} meant that an alternative needed to be found.
+
+This presented a great opportunity to try a modern distributed version control
+system. The distributed model made more sense, particularly in this context, for
+the following reasons:
+
+\begin{description}
+\item[Availability] \hfill \\
+As mentioned above, the primary motivator for the move was the availability of
+\emph{cosmos}, as it regularly had to be taken offline to service the generators
+in the wake of the flood. 
+\item[Data Backup] \hfill \\
+Without a central server, there is no ``single point of failure''. Backing
+up the entire history became simply a matter of working on the project from a
+number of different computers. It was also possible to regularly synchronise
+with an online code repository, for further redundancy.
+\item[Workflows] \hfill \\
+The range of possible workflows for a distributed VCS is greater than for a
+centralised one. Being a single-person project, the centralised model is
+unnecessary and prohibitively restrictive.
+\item[Speed] \hfill \\
+A distributed VCS doesn't suffer the network latency overheads of a centralised
+system for the majority of its operations. Though this is not hugely significant
+for such a small project, over time the delay adds up, so it was still a
+consideration.
+\item[Relevance] \hfill \\
+There is an increasing trend in free and open-source projects towards
+distributed version control, so this presented a chance to acquire skill in an
+important contemporary tool.
+\end{description}
+
+The first one to be used was
+\emph{Bazaar}\footnote{\url{http://bazaar-vcs.org/}}, which is closely
+associated with Canonical Ltd.\ and the Ubuntu operating system. It has some
+commands in common with Subversion, making it easy to make the move. It was used
+to track the project for a period from November to January, but it proved to be
+a bit slow, and there was some difficulty getting it to work through the
+University firewall.
+
+At the beginning of February, the project was moved
+\emph{Git}\footnote{\url{http://git-scm.com/}}. Git is another open source
+distributed version control system, developed by Linus Torvalds in 2005 to track
+the source code of the Linux kernel, replacing the proprietary \emph{Bitkeeper}
+system. It is more difficult to learn, but it is very neat in concept, and is
+considerably faster than Bazaar for normal use.
+
+The online Git repository for this project, which includes the project history
+since 1st~February~2010, can be found at:
+\begin{center}\url{http://github.com/Dockheas23/scheme2lua}\end{center}
+
+\subsection{Typesetter}
+
+This report was written and typeset using
+\LaTeX\footnote{\url{http://www.latex-project.org/}}, with extensions for
+generating pdf files. It was originally created by Leslie Lamport as a
+convenient and usable set of macros for Donald Knuth's typesetting system, \TeX.
+It is now widely used and has become a de-facto standard for scientific papers.
+It facilitated the production of a well-structured and aesthetically pleasing
+report.
+
+\subsection{Graphics, Diagrams \& Presentation}
+
+\emph{OpenOffice}\footnote{\url{http://www.openoffice.org/}} is a complete open
+source office suite created by Sun Microsystems.  It can work with several
+formats, including the standard OpenDocument format as well as Microsoft's
+proprietary file formats. Its drawing and presentation programs were used to
+create the diagrams and slides for the project open day.
+
+Another open source program called
+\emph{Dia}\footnote{\url{http://projects.gnome.org/dia/}} was used to create the
+UML diagrams in later sections of this report. It is part of the
+\emph{GNOME}\footnote{\url{http://www.gnome.org/}} project and can work with a
+variety of different types of flow-charts and block diagrams. It also contains
+an automatic code generation function, and can export to a number of file
+formats, including png, pdf, eps and svg.
 
