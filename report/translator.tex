@@ -19,6 +19,17 @@ must produce the same output as the Scheme program run natively through a Scheme
 interpreter.
 \end{itemize}
 
+The point about the eventual program output raises an interesting question;
+should the output ultimately look like Scheme data or its equivalent Lua data?
+The answer to this involves another question around the program's use. In a role
+as a kind of Scheme interpreter, the automatic choice would be to use Scheme
+data, but perhaps a translator in the true sense should output only Lua data.
+It was decided that the output should exactly match the Scheme output, mainly
+because this allowed direct comparison of output with a native Scheme
+interpreter, which simplified testing. As will be seen later, it turns out that
+changing the format of the output to look like Lua is a trivial matter in any
+case.
+
 \subsection{Non-functional Requirements}
 
 \begin{itemize}
@@ -32,6 +43,7 @@ other to a certain extent, pointed to simplicity as a primary design objective.
 
 
 \section{Design And Implementation}
+
 
 \subsection{First Approach}
 
@@ -66,19 +78,8 @@ This approach was more structured in its implementation.
 \subsection{Data Types}
 
 \begin{itemize}
-\item Atomic Data
-\begin{itemize}
-\item Booleans
-\item Numbers
-\item Characters
-\item Strings
-\end{itemize}
-\item Compound Data
-\begin{itemize}
-\item Lists
-\item Vectors
-\item Bytevectors
-\end{itemize}
+\item Atomic Data: Booleans, Numbers, Characters and Strings.
+\item Compound Data: Lists, Vectors and Bytevectors
 \end{itemize}
 
 We will look at each of these in turn to identify what commonalities or
@@ -108,13 +109,9 @@ string''~\cite[p.11]{luabook}.
 Lists are the primary data type in Scheme, and there is a duality in the
 representation of list data and the core syntax of a Scheme program.
 
-\subsubsection{Vectors}
+\subsubsection{Vectors and Bytevectors}
 
 Vectors are similar to lists.
-
-\subsubsection{Bytevectors}
-
-Bytevectors are like vectors with every item representing a byte.
 
 \subsection{Branching}
 
@@ -137,8 +134,23 @@ syntax-rules etc.
 
 \subsection{Main Program}
 
-Consists of a shell script that calls the main scheme2lua.lua program, which
-contains the main loop.
+The entry point to the translator consists of a shell script that calls the main
+\texttt{scheme2lua.lua} program, which contains the main loop. It take a number
+of scheme input files as arguments and writes the lua translation to standard
+output. The usage is outlined below:
+
+\begin{framed}
+\texttt{\$ ./scheme2lua [input-file] \ldots}
+\end{framed}
+
+The \texttt{scheme2lua.lua} program is a filter, which takes scheme from its
+standard input and outputs lua to standard output. It does this through a loop
+that repeatedly calls the \texttt{parse} function on the next token of input,
+until none remains. Below is the algorithm for the main loop:
+
+\begin{framed}
+Algorithm for main loop
+\end{framed}
 
 \subsection{The Scanner}
 
@@ -149,10 +161,20 @@ contains the main loop.
 \label{fig:scannerUML}
 \end{figure}
 
+The scanner component is used to read the input file(s) and split them into a
+stream of atomic tokens, which are supplied to the parser. Scanners are a common
+component in compilers and interpreters and, rather than attempt to ``re-invent
+the wheel'', a standard approach to scanning was followed for this project.
+Though it used a slightly different implementation, it was created borrowing
+heavily from the ideas and techniques used in the SAL interpreter\cite{sal}.
+
 Figure~\ref{fig:scannerUML} shows the structure of the scanner in UML class
-diagram form. Though it used a slightly different implementation, it was created
-borrowing heavily from the ideas and techniques used in the SAL
-interpreter~\cite{sal}
+form. As can be seen from the diagram, the scanner is accessible through three
+methods: \texttt{init()} initialises the scanner; the others both return
+individual tokens from the scanner---the difference being that
+\texttt{peekToken()} leaves the returned token in the scanner, whereas
+\texttt{nextToken()} does not. Internally, there are helper functions for
+dealing with caching, comments and recognising the various Scheme tokens.
 
 \subsection{The Parser}
 
@@ -180,9 +202,14 @@ As can be seen in figure~\ref{fig:scmDataUML}
 
 \section{The Operation Of A Translated Program}
 
-The output of the translator consists of two main parts: a library of supported
-Scheme functions and operations, written in Lua; and the translated output of
-the the scheme input program, which uses the library to carry out its purpose.
+The output of the translator consists of two main parts:
+\begin{itemize}
+\item A library of supported Scheme functions and operations, written in Lua.
+This is identical for every translation.
+\item The translated output of the the scheme input program, which uses a subset
+of the library to carry out its purpose.
+\end{itemize}
+
 All of the functions of the library deal with data in the intermediate form, as
 output by the parser. That is to say that all function arguments and all of the
 return values are in this form.
