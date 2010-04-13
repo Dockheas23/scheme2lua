@@ -7,11 +7,11 @@ a new, if indirect, implementation of Scheme.
 
 \section{Requirements}
 
-Being a project that is experimental in style, the requirements were not rigidly
-determined in fine detail at the outset, or even at later stages. However it was
-certainly possible, and indeed important, to establish a set of high-level
-requirements and guiding principles for the project. These were categorised as
-functional and non-functional requirements.
+Being a project that was experimental in style, the requirements were not
+rigidly determined in fine detail at the outset, or even at later stages.
+However it was certainly possible, and indeed important, to establish a set of
+high-level requirements and guiding principles for the project. These were
+categorised as functional and non-functional requirements.
 
 \subsection{Functional Requirements}
 
@@ -54,27 +54,28 @@ work from, influencing design decisions at all stages. In particular the
 non-functional requirements, though in conflict with each other to a certain
 extent, pointed to simplicity as a primary design objective. As an additional
 principle, interesting and potentially unusual aspects of the interactions
-between the languages was to be given preference over maximal coverage of the
+between the languages were to be given preference over maximal coverage of the
 Scheme syntax.
 
 
-\section{Design And Implementation}
+\section{Design 1}
 
-In essence, this project has a lot in common with an interpreter or a compiler,
-insofar as it involves scanning and parsing source code, and generating output.
-One way of looking at the translator is as a Scheme compiler, whose output is
-Lua source code instead of machine code. Because of this, some of the design
-decisions were standard, particularly regarding the structure and main
+In essence, the translator has a lot in common with an interpreter or a
+compiler, insofar as it involves scanning and parsing source code, and
+generating output. One way of looking at it is as a Scheme compiler, whose
+output is Lua source code instead of machine code. Because of this, some of the
+design decisions were standard, particularly regarding the structure and main
 components.
 
 An element of the design that was discussed at the meetings early on, in keeping
 with the objective of simplicity, was to try to limit it to a single pass over
-the Scheme source files, if possible. In that regard, the program would be able
-to translate on-the-fly, and therefore could be used in a piped or streamed
-context. It would also eliminate the need to build syntax trees or other
-structures. The possibility for multiple passes remained open if the single pass
-wasn't working---but in fact, this became the cornerstone of the design and
-resorting to multiple passes was not seriously considered at any point.
+the Scheme source files. In that regard, the program would be able to translate
+on-the-fly, and therefore could be used in a piped or streamed context. It would
+also eliminate the need to build syntax trees or other structures. The
+uniformity and recursive nature of Scheme's syntax meant that this should be
+possible, with the option for multiple passes remaining open if the single pass
+wasn't working. In fact, this became the cornerstone of the design and resorting
+to multiple passes was not seriously considered at any point.
 
 Given that, the design of other elements of the translator evolved over the
 course of the project. Some of the problems encountered forced changes in the
@@ -85,31 +86,32 @@ handled data.  We will now look at the two approaches.
 \subsection{First Approach}
 
 The initial approach involved finding for each construct in Scheme, its most
-precise and efficient representation in Lua. In French parlance, this is nicely
+concise and efficient representation in Lua. In French parlance, this is sweetly
 described by the phrase ``le mot juste'', meaning ``the precise word'' or ``the
 perfect word'', and it brings to mind the image of an expert translator of
 human languages, who knows through experience how to accurately convey the
 intended semantic of each phrase from one language to another for a particular
-context.  At first, this seemed like a reasonable and credible way of
-proceeding given the small size of the core of the Scheme language.
+context.  At first, this seemed like a reasonable way of proceeding given the
+small size of the core of the Scheme language. As well as that, it was the
+natural way given that both languages were also being learned in parallel from
+the start.
 
-\subsection{Difficulties With First Approach}
+\begin{framed}
+For example:
+\begin{center}\ttfamily (define identity (lambda (x) x))\end{center}
 
-However it soon became apparent that this approach would quickly become
-unwieldy, as the range of various contexts in which an expression could appear
-often meant the optimal translation needed to be adjusted slightly. An example
-of this is\ldots
+would be translated to:
+\begin{center}\ttfamily identity = function (x) return x end\end{center}
+\end{framed}
 
-\subsection{Second Approach}
+This method had a number of favourable characteristics like simplicity,
+conciseness and readability. The size of the Lua output was minimal, with an
+(almost) one-to-one mapping between the Scheme and Lua constructs. Also, all
+Scheme atomic data in the input was mapped to Lua atomic data, and Scheme lists
+were mapped directly to Lua tables.
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{overview.png}
-\caption{A conceptual overview of the stages of translation}
-\label{fig:overview}
-\end{figure}
-
-This approach was more structured in its implementation.
+For now, we will look in more detail at parallels and divergences between the
+language elements, before revisiting the design later in the chapter.
 
 
 \section{Language Elements}
@@ -117,26 +119,51 @@ This approach was more structured in its implementation.
 The ability to successfully perform a translation in any setting is affected by
 the expressiveness of the languages, particularly the destination language. In
 this case, it needed to be determined to what extent the features of Scheme
-could be correctly expressed in Lua.
+could be correctly expressed in Lua, both in terms of data representation and
+the flow of execution.
 
 \subsection{Data Types}
 
-Scheme data is made up of the following types: INCLUDE CITATION
+Scheme data is made up of the following types:~\cite[App:(Formal~Syntax)]{tspl}
 \begin{itemize}
-\item Atomic Data: Symbols, Booleans, Numbers, Characters and Strings.
-\item Compound Data: Lists, Vectors and Bytevectors
+\item \textsc{Atomic Data}: Symbols, Booleans, Numbers, Characters and Strings.
+\item \textsc{Compound Data}: Lists, Vectors and Bytevectors
 \end{itemize}
 
-We will look at each of these in turn to identify what commonalities or
-differences between Scheme and Lua could affect the translation.
+We will look at each of these in turn to identify differences that could affect
+Lua's ability to fully express them.
 
 \subsubsection{Symbols}
 
-Identifiers
+Scheme symbols represent what can constitute a \emph{word} in the language. They
+are relevant here in how they apply to identifiers. Here is what two of the
+texts have to say about symbols and identifiers.
+
+\begin{quote}\textbf{Scheme:}
+``Keywords, variables, and symbols are collectively called identifiers.
+Identifiers may be formed from letters, digits, and certain special characters,
+including: \texttt ?, \texttt !, \texttt ., \texttt +, \texttt -, \texttt *,
+\texttt /, \texttt <, \texttt =, \texttt >, \texttt :, \texttt \$, \texttt \%,
+\texttt \^{}, \texttt \&, \rule{3mm}{0.2mm}, \texttt \~{}, and \texttt @ , as
+well as a set of additional Unicode characters.  Identifiers cannot start with
+an at sign (\texttt @) and normally cannot start with any character that can
+start a number, i.e., a digit, plus sign (\texttt +), minus sign (\texttt -), or
+decimal point (\texttt .). Exceptions are \texttt +, \texttt -, and \texttt
+\ldots, which are valid identifiers, and any identifier starting with
+\texttt{->}.''~\cite[Sec~1.1]{tspl}
+\end{quote}
+
+\begin{quote}\textbf{Lua:}
+``Identifiers in Lua can be any string of letters, digits, and
+underscores, not beginning with a digit''~\cite[p.5]{luabook}
+\end{quote}
+
+This immediately indicates a possible problem, since Lua identifiers cannot
+accommodate the entire range of possible Scheme identifiers.
 
 \subsubsection{Booleans}
 
-With only two possible values, booleans are
+With only two possible values, and a boolean type in each language, this is
 easily translated. In Lua, the values are \texttt{true} and \texttt{false},
 corresponding to \texttt{\#t} and \texttt{\#f} respectively in Scheme.
 
@@ -146,12 +173,34 @@ Scheme has a very rich syntax for describing numbers. This is in contrast with
 Lua, in which the double precision floating point number is the only
 numeric type~\cite[p.10]{luabook}.
 
+\begin{quote}\textbf{Scheme:}
+``Scheme numbers may be classified as integers, rational numbers, real numbers,
+or complex numbers. This classification is hierarchical, in that all integers
+are rational, all rational numbers are real, and all real numbers are
+complex.''\ldots ``A Scheme number may also be classified as exact or inexact,
+depending upon the quality of operations used to derive the number and the
+inputs to these operations.''~\cite[Sec~6.4]{tspl}
+\end{quote}
+
+\begin{quote}\textbf{Lua:}
+``The number type represents real (double-precision floating-point) numbers. Lua
+has no integer type, as it does not need it.''~\cite[p.10]{luabook}
+\end{quote}
+
 \subsubsection{Strings}
 
-Scheme strings are more restrictive than Lua strings. ``Lua is
-eight-bit clean and its strings may contain characters with any numeric code,
-including embedded zeros. This means that you can store any binary data into a
-string''~\cite[p.11]{luabook}.
+Scheme strings are more restrictive than Lua strings.
+
+\begin{quote}\textbf{Scheme:}
+``A string is written as a sequence of characters enclosed in double
+quotes,''\ldots ``Any Unicode character may be inserted''~\cite[Sec~6.8]{tspl}
+\end{quote}
+
+\begin{quote}\textbf{Lua:}
+``Lua is eight-bit clean and its strings may contain characters with any numeric
+code, including embedded zeros. This means that you can store any binary data
+into a string''~\cite[p.11]{luabook}.
+\end{quote}
 
 \subsubsection{Lists}
 
@@ -160,8 +209,11 @@ representation of list data and the core syntax of a Scheme program.
 
 \subsubsection{Vectors and Bytevectors}
 
-Vectors are similar to lists. Support for vectors and bytevectors was included
-in the translator, but they were not tested to any great degree.
+Vectors are similar to lists in that they represent a sequence of values, but
+they are not conceptually represented in pair form. Bytevectors are a special
+type of vector, whose elements represent byte values. Support for vectors and
+bytevectors was included in the translator, but they were not tested to any
+great degree. 
 
 \subsection{Branching}
 
@@ -194,6 +246,32 @@ Coroutines \ldots
 \subsection{Syntax Extension}
 
 This was another very interesting aspect of Scheme to be considered. 
+
+
+\section{Design 2}
+
+\subsection{Difficulties With First Approach}
+
+However it soon became apparent that this approach would quickly become
+unwieldy, as the range of various contexts in which an expression could appear
+often meant the optimal translation needed to be adjusted slightly. An example
+of this is\ldots
+
+A tradeoff emerged between complexity in the translator and the complexity of
+the output. In effect, making the output as simple and efficient as
+possible would mean a large degree of complexity in the translator,
+characterised by constant type checking and monitoring of context.
+
+\subsection{Second Approach}
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{overview.png}
+\caption{A conceptual overview of the stages of translation}
+\label{fig:overview}
+\end{figure}
+
+This approach was more structured in its implementation.
 
 
 \section{Components}
