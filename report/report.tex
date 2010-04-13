@@ -1,6 +1,8 @@
 \documentclass[a4paper,12pt,twoside,openany]{report} % TODO make openright
 
 \usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage[pdfauthor={George Boyle},%
 pdftitle={A Scheme To Lua Translator},%
@@ -14,7 +16,6 @@ colorlinks,pdftex]{hyperref}
 \begin{document}
 
 
-\begin{comment} % TODO Remove this
 \title{A Scheme To Lua Translator \\
 {\small 4th Year Computer Science Project} \\
 {\small University College Cork}}
@@ -27,6 +28,7 @@ Second Reader: Prof.\ Gregory Provan}
 % Title Page, Abstract & Table Of Contents
 %
 
+\begin{comment} % TODO Remove this
 \maketitle
 \input{abstract}
 \tableofcontents
@@ -38,18 +40,18 @@ Second Reader: Prof.\ Gregory Provan}
 
 \chapter{Background (10 pages)}
 \input{background}
-\end{comment} % TODO Remove this
 
 \chapter{Project Administration}
 \input{project-admin}
+\end{comment} % TODO Remove this
 
 \chapter{The Translator}
 \input{translator}
 
+\begin{comment} % TODO Remove this
 \chapter{Testing}
 \input{testing}
 
-\begin{comment} % TODO Remove this
 \chapter{Conclusion (5 pages)}
 \input{conclusion}
 
@@ -72,7 +74,7 @@ Second Reader: Prof.\ Gregory Provan}
 %
 
 \input{references}
-
 \end{comment} % TODO Remove this
+
 
 \end{document}
