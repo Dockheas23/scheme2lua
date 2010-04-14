@@ -1,10 +1,3 @@
-This project was the idea of Dr.\ Manning, and it was, to paraphrase his
-introduction: {\em an exploration of the relationship between
-the languages Scheme and Lua, using a source-to-source translator as a means of
-doing so}. It was to be written in Lua, and would have the side-effect of being
-a new, if indirect, implementation of Scheme.
-
-
 \section{Requirements}
 
 Being a project that was experimental in style, the requirements were not
@@ -140,7 +133,7 @@ Scheme symbols define what can constitute a \emph{word} in the language. They
 are relevant here in how they apply to identifiers. Here is what two of the
 texts have to say about symbols and identifiers.
 
-\begin{quote}\textbf{Scheme:}
+\begin{quotation}\textbf{Scheme:}
 ``Keywords, variables, and symbols are collectively called identifiers.
 Identifiers may be formed from letters, digits, and certain special characters,
 including: \texttt ?, \texttt !, \texttt ., \texttt +, \texttt -, \texttt *,
@@ -152,12 +145,12 @@ start a number, i.e., a digit, plus sign (\texttt +), minus sign (\texttt -), or
 decimal point (\texttt .). Exceptions are \texttt +, \texttt -, and \texttt
 \ldots, which are valid identifiers, and any identifier starting with
 \texttt{->}.''~\cite[Sec~1.1]{tspl}
-\end{quote}
+\end{quotation}
 
-\begin{quote}\textbf{Lua:}
+\begin{quotation}\textbf{Lua:}
 ``Identifiers in Lua can be any string of letters, digits, and
 underscores, not beginning with a digit''~\cite[p.5]{luabook}
-\end{quote}
+\end{quotation}
 
 This immediately indicates a possible problem, since Lua identifiers cannot
 accommodate the entire range of possible Scheme identifiers.
@@ -174,19 +167,19 @@ Scheme has a very rich syntax for describing numbers. This is in contrast with
 Lua, in which the double precision floating point number is the only
 numeric type.
 
-\begin{quote}\textbf{Scheme:}
+\begin{quotation}\textbf{Scheme:}
 ``Scheme numbers may be classified as integers, rational numbers, real numbers,
 or complex numbers. This classification is hierarchical, in that all integers
 are rational, all rational numbers are real, and all real numbers are
 complex.''\ldots ``A Scheme number may also be classified as exact or inexact,
 depending upon the quality of operations used to derive the number and the
 inputs to these operations.''~\cite[Sec~6.4]{tspl}
-\end{quote}
+\end{quotation}
 
-\begin{quote}\textbf{Lua:}
+\begin{quotation}\textbf{Lua:}
 ``The number type represents real (double-precision floating-point) numbers. Lua
 has no integer type, as it does not need it.''~\cite[p.10]{luabook}
-\end{quote}
+\end{quotation}
 
 It is clear from this that numbers cannot translate directly, so some other
 method of dealing with it would need to be found.
@@ -197,16 +190,16 @@ Lua does not have a specific character type, but they could potentially be
 represented as a single character string. Here is the information pertaining to
 strings in Scheme and Lua from the texts:
 
-\begin{quote}\textbf{Scheme:}
+\begin{quotation}\textbf{Scheme:}
 ``A string is written as a sequence of characters enclosed in double
 quotes,''\ldots ``Any Unicode character may be inserted''~\cite[Sec~6.8]{tspl}
-\end{quote}
+\end{quotation}
 
-\begin{quote}\textbf{Lua:}
+\begin{quotation}\textbf{Lua:}
 ``Lua is eight-bit clean and its strings may contain characters with any numeric
 code, including embedded zeros. This means that you can store any binary data
 into a string''~\cite[p.11]{luabook}.
-\end{quote}
+\end{quotation}
 
 This indicates that strings should be transferrable without much trouble.
 
@@ -215,26 +208,26 @@ This indicates that strings should be transferrable without much trouble.
 Lists are the primary data type in Scheme, and there is a duality in the
 representation of list data and the core syntax of a Scheme program.
 
-\begin{quote}
+\begin{quotation}
 ``The pair, or cons cell, is the most fundamental of Scheme's structured object
 types. The most common use for pairs is to build lists, which are ordered
 sequences of pairs linked one to the next by the cdr field. The elements of the
 list occupy the car fields of the pairs. The cdr of the last pair in a proper
 list is the empty list, (); the cdr of the last pair in an improper list can be
 anything other than ().''~\cite[Sec~6.4]{tspl}
-\end{quote}
+\end{quotation}
 
 
 Similarly, Lua has a single, but very flexible data structure called a
-\emph{table}, which is basically an associative array. It has a feature called
-metamethods, which allow it to do numerous things such as object-oriented
+\emph{table}, which amounts to an associative array, but with added features
+such as metamethods, allow it to do numerous things such as object-oriented
 programming.
-\begin{quote}
+\begin{quotation}
 ``Tables are the main (in fact, the only) data structuring mechanism in Lua, and
 a powerful one. We use tables to represent ordinary arrays, symbol tables, sets,
 records, queues, and other data structures, in a simple, uniform, and efficient
 way''~\cite[p.14]{luabook}.
-\end{quote}
+\end{quotation}
 
 The power of tables allows many things to be accomplished, and is more than
 capable of representing Scheme data lists.
@@ -247,21 +240,19 @@ they are not conceptually represented in pair form. Bytevectors are a special
 type of vector, whose elements represent byte values. Support for vectors and
 bytevectors was included in the translator, but they were not tested to any
 great degree.
-\begin{quote}
+\begin{quotation}
 ``Vectors are more convenient and efficient than lists for some applications.
 Whereas accessing an arbitrary element in a list requires a linear traversal of
 the list up to the selected element, arbitrary vector elements are accessed in
 constant time.''~\cite[Sec~6.9]{tspl}
-\end{quote} 
 
-\begin{quote}
 ``Bytevectors are vectors of raw binary data. Although nominally organized as a
 sequence of exact unsigned 8-bit integers, a bytevector can be interpreted as a
 sequence of exact signed 8-bit integers, exact signed or unsigned 16-bit,
 32-bit, 64-bit, or arbitrary-precision integers, IEEE single or double
 floating-point numbers, or arbitrary combinations of the
 above.''~\cite[Sec~6.10]{tspl}
-\end{quote} 
+\end{quotation} 
 
 \subsection{Equality}
 
@@ -334,10 +325,10 @@ Take the Scheme expression \texttt{(+ 4 5)}. According to the first approach,
 this should be translated as \texttt{4 + 5}. However, if this was a
 sub-expression in the larger expression \texttt{(*~3~(+~4~5))}, the result would
 be \texttt{3~*~4~+~5}, which is incorrect. The problem is that precedence is
-a part of the Scheme syntax that has not been reflected in the translation. The
-obvious solution is to make this explicit in the translation using brackets, but
-to do this succinctly requires an intelligence and awareness of the context, and
-similar awareness must be applied to all constructs, not just arithmetic
+an integral part of the Scheme syntax that was lost in translation in this case.
+The obvious solution is to make this explicit in the translation using brackets,
+but to do this succinctly requires an intelligence and awareness of the context,
+and similar awareness must be applied to all constructs, not just arithmetic
 expressions.
 \end{framed}
 The solution that was applied in this case was, somewhat unfortunately, to
@@ -394,8 +385,8 @@ The following has been implemented:
 
 \subsection{Components}
 
-The translator consists of one shell script; one lua file, \texttt{forms.lua},
-that provides the mappings for Scheme special syntaxes and names; and five lua
+The translator consists of one shell script; one Lua file, \texttt{forms.lua},
+that provides the mappings for Scheme special syntaxes and names; and five Lua
 files representing the main components. The source code can be found in
 Appendix~\ref{sec:sourcecode}. The following are descriptions of the components
 and how they operate.
@@ -404,15 +395,15 @@ and how they operate.
 
 The entry point to the translator is a shell script that outputs the preamble
 and then calls the main \texttt{scheme2lua.lua} program, which contains the main
-loop. It take a number of scheme input files as arguments and writes the lua
+loop. It take a number of Scheme input files as arguments and writes the Lua
 translation to standard output. The usage is outlined below:
 
 \begin{framed}
 \texttt{\$ ./scheme2lua [input-file] \ldots}
 \end{framed}
 
-The \texttt{scheme2lua.lua} program is a filter, which takes scheme from its
-standard input and outputs lua to standard output. It does this through a loop
+The \texttt{scheme2lua.lua} program is a filter, which takes Scheme from its
+standard input and outputs Lua to standard output. It does this through a loop
 that repeatedly calls the \texttt{parse} function on the next token of input,
 until none remains. Algorithm 1 shows the main loop:
 
@@ -569,8 +560,8 @@ As described above, the output of the translator consists of two main parts:
 \begin{itemize}
 \item The preamble written in Lua, consisting of the definitions of the
 intermediate data structures, and a library of supported Scheme functions and
-operations.  This is identical for every translation.
-\item The translated output of the the scheme input program, which uses a subset
+operations. This is identical for every translation;
+\item The translated output of the Scheme input program, which uses a subset
 of the library to carry out its purpose. This part can contain calls to the
 library functions and other output created from Scheme special syntaxes.
 \end{itemize}
@@ -584,7 +575,8 @@ screen:
 \end{framed}
 This is to illustrate the overall format of the output. Consequently, some parts
 of the preamble have been omitted for brevity. A complete example can be found
-in the Appendix.
+in Appendix~\ref{sec:transexample}.
+
 \begin{framed}
 \scriptsize
 \begin{verbatim}
@@ -596,16 +588,6 @@ in the Appendix.
 \end{verbatim}
 \vdots \textbf{*** Some code omitted ***}\\ \vdots
 \begin{verbatim}
---
--- Data type to hold a scheme string
---
-scmString = scmData:create{
-    scmType = "String";
-    selfAsString = function (self)
-        return "scmString:new(\"" .. self.value .. "\")"
-    end;
-}
-
 --
 -- Data type to hold a scheme number
 --
@@ -646,8 +628,10 @@ return s2l_arithmeticPlus(x, y)
 end)(scmNumber:new(1), scmNumber:new(2)))
 \end{verbatim}
 \end{framed}
+
 The actual translated output is represented by the last three lines, and it uses
 the \texttt{scmNumber} data type and two functions from the preamble:
 \texttt{s2l\_display} and \texttt{s2l\_arithmeticPlus}. Although quite different
-in syntax, there is considerable resemblence between these three lines and the
-original Scheme program.
+in syntax, there is considerable resemblance between these three lines and the
+original Scheme program. In fact, the translation almost looks like a hybrid of
+Scheme and Lua, rather than pure Lua code.

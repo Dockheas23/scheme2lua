@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt,twoside,openany]{report} % TODO make openright
+\documentclass[a4paper,12pt,twoside,openright]{report}
 
 \usepackage{framed}
 \usepackage{algorithm}
@@ -8,8 +8,10 @@
 pdftitle={A Scheme To Lua Translator},%
 pagebackref=true,urlcolor=blue,%
 colorlinks,pdftex]{hyperref}
-\usepackage{verbatim} % TODO Remove this
 
+
+\addtolength{\oddsidemargin}{6mm}
+\addtolength{\evensidemargin}{-6mm}
 \linespread{1.2}
 
 
@@ -20,7 +22,6 @@ colorlinks,pdftex]{hyperref}
 % Title Page, Abstract & Table Of Contents
 %
 
-\begin{comment} % TODO Remove this
 \input{title}
 \input{abstract}
 \tableofcontents
@@ -30,21 +31,19 @@ colorlinks,pdftex]{hyperref}
 % Main Document
 %
 
-\chapter{Background (10 pages)}
+\chapter{Background}
 \input{background}
-
-\chapter{Project Administration}
-\input{project-admin}
-\end{comment} % TODO Remove this
 
 \chapter{The Translator}
 \input{translator}
 
-\begin{comment} % TODO Remove this
 \chapter{Testing}
 \input{testing}
 
-\chapter{Conclusion (5 pages)}
+\chapter{Project Administration}
+\input{project-admin}
+
+\chapter{Conclusion}
 \input{conclusion}
 
 
@@ -57,6 +56,9 @@ colorlinks,pdftex]{hyperref}
 \chapter{Program Source Code}
 \input{sourcecode}
 
+\chapter{Full Translation Example}
+\input{translation}
+
 \chapter{Open Day Materials}
 \input{openday}
 
@@ -66,7 +68,6 @@ colorlinks,pdftex]{hyperref}
 %
 
 \input{references}
-\end{comment} % TODO Remove this
 
 
 \end{document}

@@ -1,9 +1,145 @@
-\section{Introduction}
+Scheme and Lua are two languages with different origins. Scheme emerged in the
+1970s as a dialect of Lisp, which in turn had been around since the late 1950s.
+Lua was created in 1993 and was designed to be an extension language, for
+configuring applications written in other languages. They are both small and
+simple by design, and this makes them perfect candidates for research into their
+possible associations.
 
-\subsection{Related Work}
+The idea for the project came from Dr.\ Manning, and it was, to paraphrase his
+introduction: {\em an exploration of the relationship between the languages
+Scheme and Lua, using the creation of a source-to-source translator as the
+means}. It was to be written in Lua, and would have the side-effect of being a
+new, if indirect, implementation of Scheme.
 
+
+\section{Why A Scheme To Lua Translator?}
+
+In the list of available projects, this one There is not much industrial demand
+for this kind of application. So why build a translator at all?
+
+The prospect of making a translation from one language to another raises a series of questions:
+\begin{itemize}
+\item What does it mean to 
+\item What, if any, are the limits of what can be expressed in a language?
+\end{itemize}
+The objective of this project is to try to answer some of these questions, and
+in doing so, get to the very core of understanding computer languages. In
+some ways, the topic transcends Computer Science, and enters the realm of
+language and communication in general.
+
+\section{Related Work}
+
+There is no obvious evidence of other work out there exactly like this, but it
+has a certain degree of similarity to implementing any compiler or interpreter.
+There was also a project in 2006, by a programmer named David Bergman, to make
+an embedded Lisp interpreter, written in Lua~\cite{lualisp}. \\[5mm]
+
+\hrule \hfill \\[5mm]
+
+\noindent The best way to begin the investigation is with a closer look at the
+two languages in question.
 
 \section{About Scheme}
 
+\begin{quotation}
+``Scheme is a statically scoped and properly tail-recursive
+dialect of the Lisp programming language invented by Guy Lewis Steele Jr.\ and
+Gerald Jay Sussman. It was designed to have an exceptionally clear and simple
+semantics and few different ways to form expressions. A wide variety of
+programming paradigms, including functional, imperative, and message passing
+styles, find convenient expression in Scheme.''~\cite{r6rs}
+\end{quotation}
+
+\subsection{Scheme Usage}
+
+Because of its simple syntax, Scheme is often used as the basis language for
+introductory Computer Science courses. It is also used as a scripting language
+for some open source applications, such as the GNU Image Manipulation Program
+(GIMP)\footnote{\url{http://www.gimp.org/}}, and the free accounting
+application, GnuCash\footnote{\url{http://www.gnucash.org/}}
+
+\subsection{Scheme Syntax}
+
+Being a dialect of Lisp, Scheme has a Lisp-like syntax, which is very simple and
+contains many parentheses. Here is an example taken from \emph{Scheme and the
+Art of Programming}~\cite[p.40]{schemebook}
+\begin{framed}
+\begin{verbatim}
+(define factorial
+  (lambda (item)
+    (cond
+      ((pair? item) 'pair)
+      ((null? item) 'empty-list)
+      ((number? item) 'number)
+      ((symbol? item) 'symbol)
+      (else 'some-other-type))))
+\end{verbatim}
+\end{framed}
+
 
 \section{About Lua}
+
+\begin{quotation}
+``Lua is an extension programming language designed to support general
+procedural programming with data description facilities. It also offers good
+support for object-oriented programming, functional programming, and data-driven
+programming. Lua is intended to be used as a powerful, light-weight scripting
+language for any program that needs one. Lua is implemented as a library,
+written in clean C (that is, in the common subset of ANSI C and
+C++).''~\cite[Sec~1]{luamanual}
+\end{quotation}
+\subsection{Lua Usage}
+
+Lua is frequently embedded in other languages, but it can be used for standalone
+applications as well. Though originally developed as a scripting language for
+engineers, it has found uses in many other industrial settings from robotics and
+bioinformatics to image processing; and it has become extremely popular for game
+programming~\cite{evolua}.
+
+\subsection{Lua Syntax}
+
+The syntax of Lua is quite different to that of Scheme, and has more in common
+with languages like C, Java and others from the same lineage. The following example is from \emph{Programming in Lua}~\cite[p.40]{luabook}
+\begin{framed}
+\begin{verbatim}
+function add (...)
+  local s = 0
+  for i, v in ipairs{...} do
+    s = s + v
+  end
+  return s
+end
+\end{verbatim}
+\end{framed}
+
+\subsection{LuaJIT}
+
+LuaJIT\cite{luajit} is a just-in-time compiler for Lua that, according to its
+website\footnote{\url{http://luajit.org/performance.html}}, displays radical
+improvements in performance over the regular Lua interpreter. This is another
+interesting possibility when testing the performance of the translated output.
+
+
+\section{Scheme \& Lua}
+
+From the descriptions above, it would seem on the surface that Scheme and Lua
+have very little in common. However, Scheme had, and continues to have a
+prominent influence in the development of Lua. The following extract from a
+paper entitled \emph{``The Evolution of Lua''} demonstrates this connection.
+
+\begin{quotation}
+''Semantically, Lua has many similarities with Scheme, even though these
+similarities are not immediately clear because the two languages are
+syntactically very different. The influence of Scheme on Lua has gradually
+increased during Lua’s evolution: initially, Scheme was just a language in the
+background, but later it became increasingly important as a source of
+inspiration, especially with the introduction of anonymous functions and full
+lexical scoping.
+
+Like Scheme, Lua is dynamically typed: variables do not have types; only values
+have types. As in Scheme, a variable in Lua never contains a structured value,
+only a reference to one. As in Scheme, a function name has no special status in
+Lua: it is just a regular variable that happens to refer to a function
+value.''\ldots ``Like Scheme, Lua has first-class functions with lexical
+scoping.''~\cite[Sec~2]{evolua}
+\end{quotation}

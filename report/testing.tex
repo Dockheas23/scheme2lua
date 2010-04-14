@@ -1,18 +1,139 @@
-Unit Tests were performed on the two main components of the translator, namely
-the scanner and the parser. Once they were working properly, testing consisted
-mainly of extending the functionality of the translator to correctly translate a
-series of example Scheme programs.
+Testing was a constant process, with each new feature invariably requiring
+thorough inspection. Over the course of the project, the testing strategy
+changed from unit tests to more extensive general tests. Unit tests were
+performed on the two main components of the translator, namely the scanner and
+the parser. Once they were working properly, testing consisted mainly of
+extending the functionality of the translator to correctly translate a series of
+example Scheme programs.
+
 
 \section{Unit Tests}
 
 
-\section{Scheme Programs}
+\section{Scheme Test Programs}
+
+Below are some excerpts from the programs that were used. They were made to be
+increasingly complex and to test different aspects of the translator. A more
+complete example, including the translation and program output can be found in
+Appendix~\ref{sec:transexample}
+
+\subsection{Test Program 1}
+This example tested basic operations, such as displaying output, quoting data
+and constructing proper and improper lists.
+\begin{framed}
+\begin{verbatim}
+(display '())
+(newline)
+(display (quote (1 #t 3)))
+(newline)
+(display '(1 2 . 3))
+(newline)
+(display (cons 4 (cons '("Hello" 3) '(1 2 . 3))))
+(newline)
+\end{verbatim}
+\end{framed}
+
+\subsection{Test Program 2}
+This example tested simple definitions and function application.
+\begin{framed}
+\begin{verbatim}
+(define identity (lambda (x) x))
+(display (identity 5))
+
+(display ((lambda (x) (+ x 1)) 2))
+(newline)
+
+(define a
+  (lambda (n) (+ n 5)))
+(define b
+  (lambda (x y) (+ x y)))
+
+(display "(b (a 3) (b 2 2))")
+(newline)
+(display (b (a 3) (b 2 2)))
+(newline)
+\end{verbatim}
+\end{framed}
+
+\subsection{Test Program 3}
+This program was used to test the different ways of handling arguments in the
+lambda expression.
+\begin{framed}
+\begin{verbatim}
+(display ((lambda (x) x) 5))
+(newline)
+(display ((lambda x x) 5))
+(newline)
+(display ((lambda (x . y) y) 1 2 3))
+(newline)
+\end{verbatim}
+\end{framed}
+
+\subsection{Test Program 4}
+This program tested some more comprehensive function definitions, including
+branching and recursion.
+\begin{framed}
+\begin{verbatim}
+(define IsInteger
+  (lambda (x)
+    (integer? x)))
+
+(define Last
+  (lambda (l)
+    (cond
+      ((null? (cdr l)) (car l))
+      (else (Last (cdr l))))))
+
+(define Range
+  (lambda (lo hi)
+    (cond
+      ((> lo hi) '())
+      (else (cons lo (Range (+ lo 1) hi))))))
+
+(display (Range 1 5))
+(display (Last '(9 8 7 6 5 4)))
+\end{verbatim}
+\end{framed}
 
 
-\section{Speed Tests}
+\section{Performance Tests}
 
-\begin{table}
-\centering
+Two prime number algorithms were used to test the relative performance of the
+translation against a native Scheme implementation. Also included is the result
+of running the translated Lua output using \texttt{luaJIT}, the Lua just-in-time
+compiler. The algorithms were intentionally na\"{i}ve, with the second being
+a more list-based variation.
+
+\subsection{Algorithm 1}
+
+\begin{framed}
+\begin{verbatim}
+(define primes
+  (lambda (n)
+    (let nextprime ((primecount 1) (current 2))
+      (cond
+        ((> primecount n) (newline))
+        ((isPrime current)
+         (display primecount) (display ": ")
+         (display current) (newline)
+         (nextprime (+ primecount 1) (+ current 1)))
+        (else (nextprime primecount (+ current 1)))))))
+
+(define isPrime
+  (lambda (n)
+    (if (< n 2) #f
+      (let prime ((k 2))
+        (cond
+          ((= n k) #t)
+          ((integer? (/ n k)) #f)
+          (else (prime (+ k 1))))))))
+
+(primes 5000)
+(exit)
+\end{verbatim}
+\end{framed}
+
+\begin{center}
 \begin{tabular}{|l|c|c|c|}
 \hline
 & lua & luaJIT & scm \\
@@ -21,11 +142,41 @@ First 1000 Primes & 0:16 & 0:09 & 0:02 \\ \hline
 First 2000 Primes & 1:13 & 0:41 & 0:09 \\ \hline
 First 5000 Primes & 8:26 & 4:49 & 1:02 \\ \hline
 \end{tabular}
-\caption{Test table}
-\end{table}
+\end{center}
 
-\begin{table}
-\centering
+\subsection{Algorithm 2}
+
+\begin{framed}
+\begin{verbatim}
+(define Range
+  (lambda (lo hi)
+    (cond
+      ((> lo hi) '())
+      (else (cons lo (Range (+ lo 1) hi))))))
+
+(define Filter
+  (lambda (p l)
+    (cond
+      ((null? l) '())
+      ((p (car l)) (cons (car l) (Filter p (cdr l))))
+      (else (Filter p (cdr l))))))
+
+(define isPrime
+  (lambda (n)
+    (if (< n 2) #f
+      (let prime ((k 2))
+        (cond
+          ((= n k) #t)
+          ((integer? (/ n k)) #f)
+          (else (prime (+ k 1))))))))
+
+(display (Filter isPrime (Range 2 20000)))
+(newline)
+(exit)
+\end{verbatim}
+\end{framed}
+
+\begin{center}
 \begin{tabular}{|l|c|c|c|}
 \hline
 & lua & luaJIT & scm \\
@@ -33,5 +184,4 @@ First 5000 Primes & 8:26 & 4:49 & 1:02 \\ \hline
 Primes Up To 10000 & 0:37 & 0:16 & 0:03 \\ \hline
 Primes Up To 20000 & FAIL & 1:13 & FAIL \\ \hline
 \end{tabular}
-\caption{Test table}
-\end{table}
+\end{center}
