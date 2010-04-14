@@ -81,7 +81,7 @@ Given that, the design of other elements of the translator evolved over the
 course of the project. Some of the problems encountered forced changes in the
 design to varying degrees. In particular, there was one recurring issue, midway
 through the project, that prompted a radical redesign of the way the program
-handled data.  We will now look at the two approaches.
+handled data.
 
 \subsection{First Approach}
 
@@ -91,10 +91,10 @@ described by the phrase ``le mot juste'', meaning ``the precise word'' or ``the
 perfect word'', and it brings to mind the image of an expert translator of
 human languages, who knows through experience how to accurately convey the
 intended semantic of each phrase from one language to another for a particular
-context.  At first, this seemed like a reasonable way of proceeding given the
+context. At first, this seemed like a reasonable way of proceeding given the
 small size of the core of the Scheme language. As well as that, it was the
-natural way given that both languages were also being learned in parallel from
-the start.
+natural way given that both languages were also being learned together from the
+start.
 
 \begin{framed}
 For example:
@@ -124,7 +124,8 @@ the flow of execution.
 
 \subsection{Data Types}
 
-Scheme data is made up of the following types:~\cite[App:(Formal~Syntax)]{tspl}
+Scheme data is made up of the following
+types:~\cite[Appendix~(Formal~Syntax)]{tspl}
 \begin{itemize}
 \item \textsc{Atomic Data}: Symbols, Booleans, Numbers, Characters and Strings.
 \item \textsc{Compound Data}: Lists, Vectors and Bytevectors
@@ -135,7 +136,7 @@ Lua's ability to fully express them.
 
 \subsubsection{Symbols}
 
-Scheme symbols represent what can constitute a \emph{word} in the language. They
+Scheme symbols define what can constitute a \emph{word} in the language. They
 are relevant here in how they apply to identifiers. Here is what two of the
 texts have to say about symbols and identifiers.
 
@@ -171,7 +172,7 @@ corresponding to \texttt{\#t} and \texttt{\#f} respectively in Scheme.
 
 Scheme has a very rich syntax for describing numbers. This is in contrast with
 Lua, in which the double precision floating point number is the only
-numeric type~\cite[p.10]{luabook}.
+numeric type.
 
 \begin{quote}\textbf{Scheme:}
 ``Scheme numbers may be classified as integers, rational numbers, real numbers,
@@ -187,9 +188,14 @@ inputs to these operations.''~\cite[Sec~6.4]{tspl}
 has no integer type, as it does not need it.''~\cite[p.10]{luabook}
 \end{quote}
 
-\subsubsection{Strings}
+It is clear from this that numbers cannot translate directly, so some other
+method of dealing with it would need to be found.
 
-Scheme strings are more restrictive than Lua strings.
+\subsubsection{Characters and Strings}
+
+Lua does not have a specific character type, but they could potentially be
+represented as a single character string. Here is the information pertaining to
+strings in Scheme and Lua from the texts:
 
 \begin{quote}\textbf{Scheme:}
 ``A string is written as a sequence of characters enclosed in double
@@ -202,10 +208,37 @@ code, including embedded zeros. This means that you can store any binary data
 into a string''~\cite[p.11]{luabook}.
 \end{quote}
 
+This indicates that strings should be transferrable without much trouble.
+
 \subsubsection{Lists}
 
 Lists are the primary data type in Scheme, and there is a duality in the
 representation of list data and the core syntax of a Scheme program.
+
+\begin{quote}
+``The pair, or cons cell, is the most fundamental of Scheme's structured object
+types. The most common use for pairs is to build lists, which are ordered
+sequences of pairs linked one to the next by the cdr field. The elements of the
+list occupy the car fields of the pairs. The cdr of the last pair in a proper
+list is the empty list, (); the cdr of the last pair in an improper list can be
+anything other than ().''~\cite[Sec~6.4]{tspl}
+\end{quote}
+
+
+Similarly, Lua has a single, but very flexible data structure called a
+\emph{table}, which is basically an associative array. It has a feature called
+metamethods, which allow it to do numerous things such as object-oriented
+programming.
+\begin{quote}
+``Tables are the main (in fact, the only) data structuring mechanism in Lua, and
+a powerful one. We use tables to represent ordinary arrays, symbol tables, sets,
+records, queues, and other data structures, in a simple, uniform, and efficient
+way''~\cite[p.14]{luabook}.
+\end{quote}
+
+The power of tables allows many things to be accomplished, and is more than
+capable of representing Scheme data lists.
+
 
 \subsubsection{Vectors and Bytevectors}
 
@@ -213,7 +246,26 @@ Vectors are similar to lists in that they represent a sequence of values, but
 they are not conceptually represented in pair form. Bytevectors are a special
 type of vector, whose elements represent byte values. Support for vectors and
 bytevectors was included in the translator, but they were not tested to any
-great degree. 
+great degree.
+\begin{quote}
+``Vectors are more convenient and efficient than lists for some applications.
+Whereas accessing an arbitrary element in a list requires a linear traversal of
+the list up to the selected element, arbitrary vector elements are accessed in
+constant time.''~\cite[Sec~6.9]{tspl}
+\end{quote} 
+
+\begin{quote}
+``Bytevectors are vectors of raw binary data. Although nominally organized as a
+sequence of exact unsigned 8-bit integers, a bytevector can be interpreted as a
+sequence of exact signed 8-bit integers, exact signed or unsigned 16-bit,
+32-bit, 64-bit, or arbitrary-precision integers, IEEE single or double
+floating-point numbers, or arbitrary combinations of the
+above.''~\cite[Sec~6.10]{tspl}
+\end{quote} 
+
+\subsection{Equality}
+
+Scheme has multiple interpretations of equality for each data type.
 
 \subsection{Branching}
 
@@ -227,13 +279,22 @@ if, when, unless, case, cond
 
 \subsection{Looping}
 
-The looping constructs in Scheme are primarily recursive.
+The looping constructs in Scheme are quite different to those in Lua. They are
+recursive in syntax, though .
+
+Lua contains iterative constructs like \texttt{while}, \texttt{for} and
+\texttt{repeat}, similar to many imperative programming languages. It can also
+be used recursively, and is fully tail-recursive.
 
 let, do
 
 \subsection{Functions}
 
-\ldots and function arguments
+Most Scheme functions evaluate the arguments before calling the function, but
+some special syntaxes, such as \texttt{and}, do not. This presents a problem
+for the translator when passing arguments directly to Lua functions, since Lua
+always evaluates the function arguments in advance of calling the function.
+
 
 \subsection{Continuations}
 
@@ -245,12 +306,49 @@ Coroutines \ldots
 
 \subsection{Syntax Extension}
 
-This was another very interesting aspect of Scheme to be considered. 
+This was another very interesting aspect of Scheme to be considered. It does not
+have a direct counterpart in Lua, but could potentially be used by the
+translator to increase its own capabilities, during translation.
+
+``Syntactic extensions, or macros, are used to simplify and regularize repeated
+patterns in a program, to introduce syntactic forms with new evaluation rules,
+and to perform transformations that help make programs more
+efficient.''~\cite[Ch~8]{tspl}
 
 
 \section{Design 2}
 
+The above considerations naturally had an influence on the design, with the full
+extent of their implications taking some time to become apparent. As the
+project progressed, and as more functionality was added to the translator, a
+number of issues prompted a rethink of some parts of the original design.
+
 \subsection{Difficulties With First Approach}
+
+Number representation, data problems, context problems, identifier mappings,
+equality, function arguments.
+
+Here is a very basic example of the problem presented by the context:
+\begin{framed}
+Take the Scheme expression \texttt{(+ 4 5)}. According to the first approach,
+this should be translated as \texttt{4 + 5}. However, if this was a
+sub-expression in the larger expression \texttt{(*~3~(+~4~5))}, the result would
+be \texttt{3~*~4~+~5}, which is incorrect. The problem is that precedence is
+a part of the Scheme syntax that has not been reflected in the translation. The
+obvious solution is to make this explicit in the translation using brackets, but
+to do this succinctly requires an intelligence and awareness of the context, and
+similar awareness must be applied to all constructs, not just arithmetic
+expressions.
+\end{framed}
+The solution that was applied in this case was, somewhat unfortunately, to
+explicitly define the precedence for all contexts. In other words, brackets were
+applied to every operand of every arithmetic expression---making the translation
+of the above \texttt{(3) * ((4) + (5))}. This is quite difficult to read for
+such a small expression. A similar technique had to be applied to functions.
+
+It was possible to delay the evaluation of function arguments using a
+\emph{thunk}, which involves wrapping the argument in a function, to be called
+if and only if the argument is needed.
 
 However it soon became apparent that this approach would quickly become
 unwieldy, as the range of various contexts in which an expression could appear
@@ -260,7 +358,8 @@ of this is\ldots
 A tradeoff emerged between complexity in the translator and the complexity of
 the output. In effect, making the output as simple and efficient as
 possible would mean a large degree of complexity in the translator,
-characterised by constant type checking and monitoring of context.
+characterised by constant type checking, monitoring of context, and applying
+rules.
 
 \subsection{Second Approach}
 
@@ -271,23 +370,42 @@ characterised by constant type checking and monitoring of context.
 \label{fig:overview}
 \end{figure}
 
-This approach was more structured in its implementation.
+This approach was more structured in its implementation, and it attempted to
+address some of the problems described above. Figure~\ref{fig:overview} shows
+the main concept in pictorial form. The source file would be scanned and parsed
+as before. However, instead of directly outputting Lua source, the parser would
+represent the Scheme program as a set of data objects, the evaluation of which
+would cause them to output themselves as Lua code. Furthermore, every
+translation would be preceded by a preamble containing definitions of the data
+objects and a library of supported Scheme operations.
 
 
-\section{Components}
+\section{Implementation}
+
+The following has been implemented:
+\begin{itemize}
+\item Assignment
+\item Arithmetic and comparison
+\item Functions
+\item Functions with delayed evaluation of arguments
+\item Branching
+\item Looping
+\end{itemize}
+
+\subsection{Components}
 
 The translator consists of one shell script; one lua file, \texttt{forms.lua},
-that provides mappings for Scheme special syntaxes and names; and five lua files
-representing the main components. The source code can be found in
+that provides the mappings for Scheme special syntaxes and names; and five lua
+files representing the main components. The source code can be found in
 Appendix~\ref{sec:sourcecode}. The following are descriptions of the components
 and how they operate.
 
-\subsection{Main Program}
+\subsubsection{Main Program}
 
-The entry point to the translator consists of a shell script that calls the main
-\texttt{scheme2lua.lua} program, which contains the main loop. It take a number
-of scheme input files as arguments and writes the lua translation to standard
-output. The usage is outlined below:
+The entry point to the translator is a shell script that outputs the preamble
+and then calls the main \texttt{scheme2lua.lua} program, which contains the main
+loop. It take a number of scheme input files as arguments and writes the lua
+translation to standard output. The usage is outlined below:
 
 \begin{framed}
 \texttt{\$ ./scheme2lua [input-file] \ldots}
@@ -296,7 +414,7 @@ output. The usage is outlined below:
 The \texttt{scheme2lua.lua} program is a filter, which takes scheme from its
 standard input and outputs lua to standard output. It does this through a loop
 that repeatedly calls the \texttt{parse} function on the next token of input,
-until none remains. Below is the algorithm for the main loop:
+until none remains. Algorithm 1 shows the main loop:
 
 \begin{algorithm}
 \caption{Main Loop For Translator}
@@ -310,7 +428,7 @@ until none remains. Below is the algorithm for the main loop:
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{The Scanner}
+\subsubsection{The Scanner}
 
 \begin{figure}
 \centering
@@ -335,7 +453,7 @@ individual tokens from the scanner---the difference being that
 attributes for dealing with caching, comments and recognising the various Scheme
 tokens.
 
-\subsection{The Parser}
+\subsubsection{The Parser}
 
 \begin{figure}
 \centering
@@ -344,10 +462,15 @@ tokens.
 \label{fig:parserUML}
 \end{figure}
 
-The parser does the main work in translation, particularly the parse function
-(See algorithm below).
-See figure~\ref{fig:parserUML} for a diagrammatic representation of the parser
-component.
+The parser does the main work in translation, particularly the parse function,
+which is shown in Algorithm 2. It has a very simple job:
+\begin{itemize}
+\item When given a token that represents atomic data, it returns a data object of that type and value
+\item If the token is a bracket, indicating a procedure, it proceeds to recursively parse the next token as the procedure, and apply it to its
+arguments.
+\end{itemize}
+It also has some utility functions for reading compound data and function
+arguments from the scanner. See figure~\ref{fig:parserUML} for a UML representation of the parser component.
 
 \begin{algorithm}
 \caption{Parse($token$, $value$)}
@@ -366,7 +489,7 @@ component.
 \ELSIF{$token$ = Symbol}
 \RETURN new symbol object from $value$
 \ELSIF{$token$ = $($ or $token$ = $[$}
-\STATE procedureName $\leftarrow$ parse next $token$ from scanner
+\STATE procedureName $\leftarrow$ Parse(next $token$ and $value$ from scanner)
 \STATE procedureValue $\leftarrow$ apply procedureName to its arguments
 \RETURN new procedure object from procedureValue
 \ELSIF{$token$ = $'$}
@@ -377,14 +500,14 @@ component.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{The Preamble}
+\subsubsection{The Preamble}
 
 The preamble forms the beginning of the output of every translation. It is
 created through the verbatim output of two files, \texttt{dataTypes.lua} and
 \texttt{procedures.lua}, which respectively define the data types and procedures
 needed by the translated source code.
 
-\subsubsection{Intermediate Data Types}
+\subsubsection{Preamble Data Types}
 
 \begin{figure}
 \centering
@@ -417,12 +540,28 @@ complex Scheme number syntax.
 The structure and relationship between these data types
 can be seen in figure~\ref{fig:scmDataUML}.
 
-\subsubsection{Procedures}
+\subsubsection{Preamble Procedures}
 
 The second part of the preamble is a series of Lua functions that implement the
 supported Scheme constructs. This acts as a library to be used by the
 translated Scheme source.
 
+All of the functions of the library deal with data in the intermediate form, as
+output by the parser. That is to say that all function arguments and all of the
+return values are in this form. The underlying value can be accessed using the
+\texttt{value} attribute, or by calling \texttt{tostring()} on the data for a
+string representation, as in the main loop of the program.
+
+\subsection{Outstanding Problems}
+
+The following was not implemented.
+\begin{itemize}
+\item The Scheme Number Syntax: though this would potentially be easy with the
+structure that is in place. It would involve expanding the \texttt{scmNumber}
+data type to include the necessary representation and operations.
+\item Continuations: 
+\item Syntax Extension:
+\end{itemize}
 
 \section{The Format Of A Translated Program}
 
@@ -433,9 +572,82 @@ intermediate data structures, and a library of supported Scheme functions and
 operations.  This is identical for every translation.
 \item The translated output of the the scheme input program, which uses a subset
 of the library to carry out its purpose. This part can contain calls to the
-library functions and output created from Scheme special syntaxes.
+library functions and other output created from Scheme special syntaxes.
 \end{itemize}
 
-All of the functions of the library deal with data in the intermediate form, as
-output by the parser. That is to say that all function arguments and all of the
-return values are in this form.
+To conclude this chapter, we will look at an example involving the translation
+of the following simple Scheme program, which displays the sum of 1 and 2 on the
+screen:
+\begin{framed}
+\centering
+\texttt{(display ((lambda (x y) (+ x y)) 1 2))}
+\end{framed}
+This is to illustrate the overall format of the output. Consequently, some parts
+of the preamble have been omitted for brevity. A complete example can be found
+in the Appendix.
+\begin{framed}
+\scriptsize
+\begin{verbatim}
+--
+-- SCHEME TO LUA TRANSLATOR
+-- Preamble File 1
+-- This file contains lua container tables for scheme data
+--
+\end{verbatim}
+\vdots \textbf{*** Some code omitted ***}\\ \vdots
+\begin{verbatim}
+--
+-- Data type to hold a scheme string
+--
+scmString = scmData:create{
+    scmType = "String";
+    selfAsString = function (self)
+        return "scmString:new(\"" .. self.value .. "\")"
+    end;
+}
+
+--
+-- Data type to hold a scheme number
+--
+scmNumber = scmData:create{
+    scmType = "Number";
+}
+\end{verbatim}
+\vdots \textbf{*** Other data definitions omitted ***}\\ \vdots
+\begin{verbatim}
+--
+-- SCHEME TO LUA TRANSLATOR
+-- Preamble File 2
+-- This file contains the lua implementation of the scheme functions
+--
+
+--
+-- BEGIN SCHEME FUNCTIONS
+--
+\end{verbatim}
+\vdots \textbf{*** Some functions omitted ***}\\ \vdots
+\begin{verbatim}
+function s2l_arithmeticPlus(...)
+    local result = 0
+    for _, item in ipairs{...} do
+        result = result + item.value
+    end
+    return scmNumber:new(result)
+end
+\end{verbatim}
+\vdots \textbf{*** Some functions omitted ***}\\ \vdots
+\begin{verbatim}
+--
+-- END SCHEME FUNCTIONS
+--
+
+s2l_display((function (x, y)
+return s2l_arithmeticPlus(x, y)
+end)(scmNumber:new(1), scmNumber:new(2)))
+\end{verbatim}
+\end{framed}
+The actual translated output is represented by the last three lines, and it uses
+the \texttt{scmNumber} data type and two functions from the preamble:
+\texttt{s2l\_display} and \texttt{s2l\_arithmeticPlus}. Although quite different
+in syntax, there is considerable resemblence between these three lines and the
+original Scheme program.
