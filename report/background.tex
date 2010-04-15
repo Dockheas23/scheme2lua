@@ -8,31 +8,31 @@ possible associations.
 The idea for the project came from Dr.\ Manning, and it was, to paraphrase his
 introduction: {\em an exploration of the relationship between the languages
 Scheme and Lua, using the creation of a source-to-source translator as the
-means}. It was to be written in Lua, and would have the side-effect of being a
-new, if indirect, implementation of Scheme.
+means}. It was to be written in Lua, and would have the side-effect of being an
+interesting new implementation of Scheme. Since both Scheme and Lua were unknown
+to me, a further side-effect would be the knowledge of two new languages, with
+all the nuances in programming style that accompany them.
 
 
 \section{Why A Scheme To Lua Translator?}
 
-In the list of available projects, this one There is not much industrial demand
-for this kind of application. So why build a translator at all?
-
-The prospect of making a translation from one language to another raises a series of questions:
+Aside from the immediate answer, \emph{``Why not?''}, here are some reasons for
+doing a project like this:
 \begin{itemize}
-\item What does it mean to 
-\item What, if any, are the limits of what can be expressed in a language?
+\item XXX
 \end{itemize}
-The objective of this project is to try to answer some of these questions, and
-in doing so, get to the very core of understanding computer languages. In
-some ways, the topic transcends Computer Science, and enters the realm of
-language and communication in general.
+The objective of this project is to get to the very core of understanding
+computer languages. In some ways, the topic transcends Computer Science, and
+enters the realm of all language and communication in general, so any
+personal revelations from this would also be beneficial.
 
 \section{Related Work}
 
-There is no obvious evidence of other work out there exactly like this, but it
-has a certain degree of similarity to implementing any compiler or interpreter.
-There was also a project in 2006, by a programmer named David Bergman, to make
-an embedded Lisp interpreter, written in Lua~\cite{lualisp}. \\[5mm]
+There is no obvious evidence of other work out there precisely like this, but
+other source-to-source translators exist between different languages. It also
+has a certain degree of similarity to any compiler or interpreter. There was
+also a project in 2006, by a programmer named David Bergman, to make an embedded
+Lisp interpreter, written in Lua~\cite{lualisp}. \\[5mm]
 
 \hrule \hfill \\[5mm]
 
@@ -52,9 +52,9 @@ styles, find convenient expression in Scheme.''~\cite{r6rs}
 
 \subsection{Scheme Usage}
 
-Because of its simple syntax, Scheme is often used as the basis language for
-introductory Computer Science courses. It is also used as a scripting language
-for some open source applications, such as the GNU Image Manipulation Program
+Because of its simple syntax, Scheme is often used as the basis for introductory
+Computer Science courses. It also acts as a scripting language for some free
+software applications, such as the GNU Image Manipulation Program
 (GIMP)\footnote{\url{http://www.gimp.org/}}, and the free accounting
 application, GnuCash\footnote{\url{http://www.gnucash.org/}}
 
@@ -90,11 +90,11 @@ C++).''~\cite[Sec~1]{luamanual}
 \end{quotation}
 \subsection{Lua Usage}
 
-Lua is frequently embedded in other languages, but it can be used for standalone
-applications as well. Though originally developed as a scripting language for
-engineers, it has found uses in many other industrial settings from robotics and
-bioinformatics to image processing; and it has become extremely popular for game
-programming~\cite{evolua}.
+Lua is frequently embedded in other languages, but it can be used for
+stand\-alone applications as well. Though originally developed as a scripting
+language for engineers, it has found uses in many other industrial settings from
+robotics and bioinformatics to image processing; and it has become extremely
+popular for game programming~\cite{evolua}.
 
 \subsection{Lua Syntax}
 
@@ -123,9 +123,9 @@ interesting possibility when testing the performance of the translated output.
 \section{Scheme \& Lua}
 
 From the descriptions above, it would seem on the surface that Scheme and Lua
-have very little in common. However, Scheme had, and continues to have a
+have very little in common. However, Scheme had, and continues to have, a
 prominent influence in the development of Lua. The following extract from a
-paper entitled \emph{``The Evolution of Lua''} demonstrates this connection.
+paper by Lua's creators, entitled \emph{``The Evolution of Lua''}, demonstrates this connection.
 
 \begin{quotation}
 ''Semantically, Lua has many similarities with Scheme, even though these
@@ -143,3 +143,5 @@ Lua: it is just a regular variable that happens to refer to a function
 value.''\ldots ``Like Scheme, Lua has first-class functions with lexical
 scoping.''~\cite[Sec~2]{evolua}
 \end{quotation}
+
+Describe parallel regarding single data structure.

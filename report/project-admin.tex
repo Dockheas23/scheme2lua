@@ -1,26 +1,27 @@
-Project development took place from late October 2009 to late March 2010. As
-the period progressed, there was a cumulative increasing focus on the project
-work, as the workload from other assignments receded. Work was characterised by
-regular meetings with the supervisor, with a number of periodic code
-submissions.
+Project development took place from late October 2009 to late March 2010. As the
+period progressed, there was a cumulative increasing focus on the project, as
+the workload from other assignments receded. The work was guided by regular
+meetings with the supervisor, with a number of periodic code submissions.
 
-Given that this was a reasonably small, single-person project, and somewhat
-experimental in nature, formal project management methodologies were not
-rigorously applied. Instead it was managed through constant attention, with the
-help of some software tools.
+Given that this was a small, single-person project, and somewhat experimental in
+nature, formal project management methodologies were not rigorously applied.
+Instead it was managed through constant attention, with the help of some
+software tools.
 
 
 \section{Methodology}
 
-The project followed a mainly evolutionary lifecycle. It was also clear from the
-beginning that it would not be possible to have a thoroughly complete translator
-in the available time.  As a result, the project followed the course of a
-prioritised list of objectives, which were followed in a serial fashion for the
-most part.  Certain minor features were worked on in parallel, and the source
-code management system facilitated that, but this was largely the exception for
-two reasons: firstly each feature needed to be completed in full to avoid
-breaking the entire program; and secondly, there was significant linear
-dependency between features.
+As mentioned in chapter~\ref{sec:translator}, the project followed an
+evolutionary lifecycle. This was not consciously decided, as it was a facet of
+the type of project and circumstances. It was also clear from the beginning that
+it would not be possible to have an entirely finished translator in the
+available time.  As a result, the project followed the course of a prioritised
+list of objectives, which were followed in a serial fashion for the most part.
+Certain minor features were worked on in parallel, and the source code
+management system facilitated that, but this was largely the exception for two
+reasons: firstly each feature needed to be completed in full to avoid breaking
+the entire program; and secondly, there was significant linear dependency
+between features.
 
 
 \section{Supervisor Meetings}
@@ -50,9 +51,7 @@ The \emph{vim}\footnote{\url{http://www.vim.org/}} editor was used to create and
 edit all of the source code. Vim stands for Vi-Improved, a feature-rich version
 of the old UNIX editor. It is widely available, versatile and highly
 configurable. Among other things, it contains automatic indenting and syntax
-highlighting making it more than adequate for a project such as this. In any
-case, the volume of code didn't warrant a large Integrated Development
-Environment.
+highlighting, making it very suitable for a project such as this.
 
 \subsection{Version Control}
 
@@ -84,7 +83,7 @@ with an online code repository, for further redundancy.
 \item[Workflows] \hfill \\
 The range of possible workflows for a distributed VCS is greater than for a
 centralised one. Being a single-person project, the centralised model is
-unnecessary and prohibitively restrictive.
+unnecessarily restrictive.
 \item[Speed] \hfill \\
 A distributed VCS doesn't suffer the network latency overheads of a centralised
 system for the majority of its operations. Though this is not hugely significant
@@ -98,14 +97,14 @@ important contemporary tool.
 
 The first distributed VCS to be used was
 \emph{Bazaar}\footnote{\url{http://bazaar-vcs.org/}}, which is closely
-associated with Canonical Ltd.\ and the Ubuntu operating system. It has some
+associated with Canonical Ltd.\ and the Ubuntu operating system. It has many
 commands in common with Subversion, making it easy to make the move. It was used
 to track the project for a period from November to January, but it proved to be
 a bit slow, and there was some difficulty getting it to work through the
 University firewall.
 
 At the beginning of February, the project was moved to
-\emph{Git}\footnote{\url{http://git-scm.com/}}. Git is another open source
+\emph{Git}\footnote{\url{http://git-scm.com/}}. Git is another open-source
 distributed version control system, developed by Linus Torvalds in 2005 to track
 the source code of the Linux kernel, replacing the proprietary \emph{Bitkeeper}
 system. It is more difficult to learn, but it is very neat in concept, and is
@@ -133,11 +132,12 @@ well-structured and aesthetically pleasing documents.
 source office suite created by Sun Microsystems.  It can work with several
 formats, including the standard OpenDocument format as well as Microsoft's
 proprietary file formats. Its drawing and presentation programs were used to
-create the diagrams and slides for the project open day.
+create the diagrams and slides for the project open day. The slides are depicted
+in Appendix~\ref{sec:openday}.
 
-Another open source program called
+A free software program called
 \emph{Dia}\footnote{\url{http://projects.gnome.org/dia/}} was used to create the
-UML diagrams in later sections of this report. It is part of the
+UML diagrams in this report. It is part of the
 \emph{GNOME}\footnote{\url{http://www.gnome.org/}} project and can work with a
 variety of different types of flow-charts and block diagrams, using a simple
 drag-and-drop interface. It also contains an automatic code generation function,
