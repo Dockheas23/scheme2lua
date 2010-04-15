@@ -1,9 +1,10 @@
 \documentclass[a4paper,12pt,twoside,openright]{report}
 
-\usepackage{framed}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{framed}
 \usepackage{graphicx}
+\usepackage[final]{pdfpages}
 \usepackage[pdfauthor={George Boyle},%
 pdftitle={A Scheme To Lua Translator},%
 pagebackref=true,urlcolor=blue,%
@@ -57,10 +58,10 @@ colorlinks,pdftex]{hyperref}
 \input{sourcecode}
 
 \chapter{Full Translation Example}
-\input{translation}
+\input{transexample}
 
-\chapter{Open Day Materials}
-\input{openday}
+\chapter{Open Day Slides}
+\includepdf[pages=1-2]{openday.pdf}
 
 
 %

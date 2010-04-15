@@ -38,8 +38,8 @@ Along with the primary functions of the translator, the following had a
 significant bearing on the design.
 \begin{itemize}
 \item The running time of the resulting Lua program should be as short as
-possible
-\item The output of the program should be readable Lua code as much as possible
+possible.
+\item The output of the program should be readable Lua code as much as possible.
 \end{itemize}
 
 Despite being rather broad, the requirements provided a sound starting point to
@@ -220,7 +220,7 @@ anything other than ().''~\cite[Sec~6.4]{tspl}
 
 Similarly, Lua has a single, but very flexible data structure called a
 \emph{table}, which amounts to an associative array, but with added features
-such as metamethods, allow it to do numerous things such as object-oriented
+such as meta-methods, allowing it to do numerous things such as object-oriented
 programming.
 \begin{quotation}
 ``Tables are the main (in fact, the only) data structuring mechanism in Lua, and
@@ -261,7 +261,7 @@ Scheme has multiple interpretations of equality for each data type.
 \subsection{Branching}
 
 Both Scheme and Lua contain constructs that allow branching, but they differ in
-the way they operate. As with the rest of Scheme, it is expression based and
+the way they operate. As with the rest of Scheme, it is expression-based and
 functional in style, meaning that the execution of the branch instruction
 amounts to a value of some sort. In contrast, \texttt{if} in Lua is a statement,
 which does not implicitly have a value of itself.
@@ -301,10 +301,12 @@ This was another very interesting aspect of Scheme to be considered. It does not
 have a direct counterpart in Lua, but could potentially be used by the
 translator to increase its own capabilities, during translation.
 
+\begin{quotation}
 ``Syntactic extensions, or macros, are used to simplify and regularize repeated
 patterns in a program, to introduce syntactic forms with new evaluation rules,
 and to perform transformations that help make programs more
 efficient.''~\cite[Ch~8]{tspl}
+\end{quotation}
 
 
 \section{Design 2}
@@ -346,7 +348,7 @@ unwieldy, as the range of various contexts in which an expression could appear
 often meant the optimal translation needed to be adjusted slightly. An example
 of this is\ldots
 
-A tradeoff emerged between complexity in the translator and the complexity of
+A trade-off emerged between complexity in the translator and the complexity of
 the output. In effect, making the output as simple and efficient as
 possible would mean a large degree of complexity in the translator,
 characterised by constant type checking, monitoring of context, and applying
@@ -405,7 +407,7 @@ translation to standard output. The usage is outlined below:
 The \texttt{scheme2lua.lua} program is a filter, which takes Scheme from its
 standard input and outputs Lua to standard output. It does this through a loop
 that repeatedly calls the \texttt{parse} function on the next token of input,
-until none remains. Algorithm 1 shows the main loop:
+until none remain. Algorithm 1 shows the main loop:
 
 \begin{algorithm}
 \caption{Main Loop For Translator}
@@ -453,43 +455,16 @@ tokens.
 \label{fig:parserUML}
 \end{figure}
 
-The parser does the main work in translation, particularly the parse function,
-which is shown in Algorithm 2. It has a very simple job:
+The parser is at the heart of the program, particularly the parse function,
+which does the main work in translation. It has a simple algorithm:
 \begin{itemize}
 \item When given a token that represents atomic data, it returns a data object of that type and value
-\item If the token is a bracket, indicating a procedure, it proceeds to recursively parse the next token as the procedure, and apply it to its
-arguments.
+\item If the token is a bracket, indicating a procedure, it recursively parses
+the next token, interpreting that as the procedure, and applies it using the
+remaining items in the list as arguments.
 \end{itemize}
 It also has some utility functions for reading compound data and function
 arguments from the scanner. See figure~\ref{fig:parserUML} for a UML representation of the parser component.
-
-\begin{algorithm}
-\caption{Parse($token$, $value$)}
-\label{alg:parse}
-\begin{algorithmic}
-\IF{$token$ = EOF}
-\RETURN nil
-\ELSIF{$token$ = Boolean}
-\RETURN new boolean object from $value$
-\ELSIF{$token$ = Character}
-\RETURN new character object from $value$
-\ELSIF{$token$ = String}
-\RETURN new string object from $value$
-\ELSIF{$token$ = Number}
-\RETURN new number object from $value$
-\ELSIF{$token$ = Symbol}
-\RETURN new symbol object from $value$
-\ELSIF{$token$ = $($ or $token$ = $[$}
-\STATE procedureName $\leftarrow$ Parse(next $token$ and $value$ from scanner)
-\STATE procedureValue $\leftarrow$ apply procedureName to its arguments
-\RETURN new procedure object from procedureValue
-\ELSIF{$token$ = $'$}
-\RETURN next data item from scanner
-\ELSE
-\RETURN new data object from $token$
-\ENDIF
-\end{algorithmic}
-\end{algorithm}
 
 \subsubsection{The Preamble}
 

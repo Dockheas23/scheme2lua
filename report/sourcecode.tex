@@ -611,7 +611,7 @@ procedures = {
     ["="] = "s2l_equals";
     [">"] = "s2l_greaterThan";
     [">="] = "s2l_greaterThanOrEqual";
-    ["eqv?"] = "s2l_equals";   -- FIXME
+    ["eqv?"] = "s2l_equals";
 
     -- Boolean operators
     ["and"] = "s2l_and";
@@ -900,7 +900,7 @@ end
 
 function s2l_length(list)
     local result = 0
-    while not s2l_null(list).value do -- FIXME Clean up (metamethods maybe)
+    while not s2l_null(list).value do
         result = result + 1
         list = s2l_cdr(list)
     end
@@ -908,9 +908,9 @@ function s2l_length(list)
 end
 
 function s2l_filter(proc, list)
-    if s2l_null(list).value then -- FIXME Clean up (metamethods maybe)
+    if s2l_null(list).value then
         return scmList:new()
-    elseif proc(s2l_car(list)).value then -- FIXME Clean up (metamethods maybe)
+    elseif proc(s2l_car(list)).value then
         return s2l_cons(s2l_car(list), s2l_filter(proc, s2l_cdr(list)))
     else
         return s2l_filter(proc, s2l_cdr(list))
@@ -933,7 +933,6 @@ function s2l_arithmeticPlus(...)
     return scmNumber:new(result)
 end
 
--- FIXME
 function s2l_arithmeticMinus(a, b)
     return scmNumber:new(a.value - b.value)
 end
@@ -946,7 +945,6 @@ function s2l_arithmeticMultiply(...)
     return scmNumber:new(result)
 end
 
--- FIXME
 function s2l_arithmeticDivide(a, b)
     return scmNumber:new(a.value / b.value)
 end

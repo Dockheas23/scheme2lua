@@ -1,0 +1,974 @@
+\label{sec:transexample}
+\section{Scheme Programs}
+
+\subsection{defs.scm}
+\scriptsize
+\begin{verbatim}
+(define IsInteger
+  (lambda (x)
+    (integer? x)))
+
+(define Last
+  (lambda (l)
+    (cond
+      ((null? (cdr l)) (car l))
+      (else (Last (cdr l))))))
+
+(define Range
+  (lambda (lo hi)
+    (cond
+      ((> lo hi) '())
+      (else (cons lo (Range (+ lo 1) hi))))))
+
+(define Count
+  (lambda (x l)
+    (cond
+      ((null? l) 0)
+      ((eqv? x (car l)) (+ 1 (Count x (cdr l))))
+      (else (Count x (cdr l))))))
+
+(define Evens
+  (lambda (l)
+    (cond
+      ((null? l) '())
+      ((integer? (/ (car l) 2)) (cons (car l) (Evens (cdr l))))
+      (else (Evens (cdr l))))))
+
+(define Take
+  (lambda (n l)
+    (cond
+      ((or (null? l) (<= n 0)) '())
+      (else (cons (car l) (Take (- n 1) (cdr l)))))))
+
+(define Drop
+  (lambda (n l)
+    (cond
+      ((or (null? l) (<= n 0)) l)
+      (else (Drop (- n 1) (cdr l))))))
+
+(define AppendLists
+  (lambda (l1 l2)
+    (cond
+      ((null? l2) l1)
+      ((null? l1) l2)
+      (else (cons (car l1) (AppendLists (cdr l1) l2))))))
+
+(define Any
+  (lambda (p l)
+    (and (not (null? l))
+	 (or (p (car l)) (Any p (cdr l))))))
+
+(define All
+  (lambda (p l)
+    (or (null? l)
+	(and (p (car l)) (All p (cdr l))))))
+
+(define Filter
+  (lambda (p l)
+    (cond
+      ((null? l) '())
+      ((p (car l)) (cons (car l) (Filter p (cdr l))))
+      (else (Filter p (cdr l))))))
+
+(define Frequencies
+  (lambda (l)
+    (cond
+      ((null? l) '())
+      (else (cons
+	      (cons (car l) (list (Count (car l) l)))
+	      (Frequencies
+		(Filter (lambda (x) (not (eqv? x (car l)))) l))))))) 
+
+(define Compose
+  (lambda (l)
+    (cond
+      ((null? l) (lambda (x) x))
+      ((null? (cdr l)) (car l))
+      (else (lambda (x) ((car l) ((Compose (cdr l)) x)))))))
+
+(define Merge
+  (lambda (l1 l2)
+    (cond
+      ((null? l2) l1)
+      ((null? l1) l2)
+      ((< (car l1) (car l2)) (cons (car l1) (Merge (cdr l1) l2)))
+      (else (cons (car l2) (Merge l1 (cdr l2)))))))
+
+(define MergeSort
+  (lambda (l)
+    (cond
+      ((or (null? l) (null? (cdr l))) l)
+      (else (Merge
+	      (MergeSort (Take (/ (length l) 2) l))
+	      (MergeSort (Drop (/ (length l) 2) l)))))))
+
+(define QuickSort
+  (lambda (l)
+    (cond
+      ((or (null? l) (null? (cdr l))) l)
+      (else (AppendLists
+	      (QuickSort (filter (lambda (n) (< n (car l))) l))
+	      (AppendLists
+		(filter (lambda (n) (= n (car l))) l)
+		(QuickSort (filter (lambda (n) (> n (car l))) l))))))))
+\end{verbatim}
+\normalsize
+
+\subsection{deftest.scm}
+\scriptsize
+\begin{verbatim}
+(display "(Last '(4 3 5 3 5 5 2)): ")
+(display (Last '(4 3 5 3 5 5 2)))
+(newline)
+(display "(Count 5 '(4 3 5 3 5 5 2)): ")
+(display (Count 5 '(4 3 5 3 5 5 2)))
+(newline)
+(display "(Evens (Range 1 10)): ")
+(display (Evens (Range 1 10)))
+(newline)
+(display "(Take 3 (Range 1 10)): ")
+(display (Take 3 (Range 1 10)))
+(newline)
+(display "(Drop 3 (Range 1 10)): ")
+(display (Drop 3 (Range 1 10)))
+(newline)
+(display "(AppendLists (Range 4 9) '(2 2 1 2)): ")
+(display (AppendLists (Range 4 9) '(2 2 1 2)))
+(newline)
+(display "(Any (lambda (x) (> x 5)) '(2 2 1 2)): ")
+(display (Any (lambda (x) (> x 5)) '(2 2 1 2)))
+(newline)
+(display "(Any (lambda (x) (> x 1)) '(2 2 1 2)): ")
+(display (Any (lambda (x) (> x 1)) '(2 2 1 2)))
+(newline)
+(display "(All (lambda (x) (> x 5)) '(2 2 1 2)): ")
+(display (All (lambda (x) (> x 5)) '(2 2 1 2)))
+(newline)
+(display "(All (lambda (x) (> x 0)) '(2 2 1 2)): ")
+(display (All (lambda (x) (> x 0)) '(2 2 1 2)))
+(newline)
+(display "(Filter (lambda (x) (>= x 2)) '(2 2 1 2)): ")
+(display (Filter (lambda (x) (>= x 2)) '(2 2 1 2)))
+(newline)
+(display "(Frequencies '(1 4 3 5 3 5 5 2)): ")
+(display (Frequencies '(1 4 3 5 3 5 5 2)))
+(newline)
+(display "(MergeSort '(1 4 3 5 3 5 5 2)): ")
+(display (MergeSort '(1 4 3 5 3 5 5 2)))
+(newline)
+(display "(MergeSort '(1 4 3 5 5 5 2)): ")
+(display (MergeSort '(1 4 3 5 5 5 2)))
+(newline)
+(display "(QuickSort '(1 4 3 5 3 5 5 2)): ")
+(display (QuickSort '(1 4 3 5 3 5 5 2)))
+(newline)
+(exit)
+\end{verbatim}
+\normalsize
+
+\section{Translated Program}
+
+\scriptsize
+\begin{verbatim}
+$ ./scheme2lua defs.scm deftest.scm
+--
+-- SCHEME TO LUA TRANSLATOR
+-- Preamble File 1
+-- This file contains lua container tables for scheme data
+--
+
+--
+-- Container for basic scheme data. Actual types inherit from this.
+-- Noteworthy methods:
+-- selfAsString - an (overrideable) object function that returns a string of
+-- lua code that will recreate that object
+-- valueAsString - an (overrideable) object function that returns the output
+-- representation of that scheme object
+--
+scmData = {
+    scmType = "Data";
+    create = function (self, o)
+        local result = o or {}
+        setmetatable(result, self)
+        self.__index = self
+        self.__tostring = self.valueAsString or scmData.valueAsString
+        return result
+    end;
+    new = function (self, item)
+        return self:create{value = item}
+    end;
+    selfAsString = function (self)
+        local funcName = "scm" .. self.scmType .. ":new"
+        return funcName .. "("..tostring(self.value)..")"
+    end;
+    valueAsString = function (self)
+        return tostring(self.value)
+    end;
+}
+
+--
+-- This wraps scheme function arguments with an iterative interface
+--
+scmArglist = scmData:create{
+    scmType = "Arglist";
+    currentIndex = 1;
+    numElements = 0;
+    add = function (self, item)
+        if self.value == nil then
+            self.value = {}
+        end
+        self.numElements = self.numElements + 1
+        self.value[self.numElements] = item
+    end;
+    hasNext = function (self)
+        return self.currentIndex > self.numElements
+    end;
+    nextArg = function (self)
+        local result = self.value[self.currentIndex]
+        self.currentIndex = self.currentIndex + 1
+        return result
+    end;
+    itemsAsString = function (self)
+        local result = ""
+        for _, item in ipairs(self.value) do
+            result = result .. item:selfAsString() .. ", "
+        end
+        if result ~= "" then
+            result = string.sub(result, 1, -3)
+        end
+        return result
+    end;
+    selfAsString = function (self)
+        if self.numElements == 0 then
+            return ""
+        end
+        return self:itemsAsString()
+    end;
+    wrappedArgs = function (self)
+        if self.numElements == 0 then
+            return ""
+        end
+        local result = ""
+        for _, item in ipairs(self.value) do
+            result = result .. "(function () return " .. item:selfAsString()
+                .. " end), "
+        end
+        if result ~= "" then
+            result = string.sub(result, 1, -3)
+        end
+        return result
+    end;
+    fromTable = function (table)
+        local result = scmArglist:new()
+        for _, value in ipairs(table) do
+            result:add(value)
+        end
+        return result
+    end;
+}
+
+--
+-- Data type to hold a scheme procedure
+--
+scmProcedure = scmData:create{
+    scmType = "Procedure";
+    selfAsString = function (self)
+        return tostring(self.value);
+    end;
+}
+
+--
+-- Data type to hold a scheme symbol
+--
+scmSymbol = scmData:create{
+    scmType = "Symbol";
+    selfAsString = function (self)
+        return self:valueAsString();
+    end;
+}
+
+--
+-- Data type to hold a scheme boolean
+--
+scmBoolean = scmData:create{
+    scmType = "Boolean";
+    valueAsString = function (self)
+        return "#" .. (self.value and "t" or "f")
+    end;
+}
+
+--
+-- Data type to hold a scheme character
+--
+scmCharacter = scmData:create{
+    scmType = "Character";
+    selfAsString = function (self)
+        return "scmCharacter:new(\"" .. self.value .. "\")"
+    end;
+}
+
+--
+-- Data type to hold a scheme string
+--
+scmString = scmData:create{
+    scmType = "String";
+    selfAsString = function (self)
+        return "scmString:new(\"" .. self.value .. "\")"
+    end;
+}
+
+--
+-- Data type to hold a scheme number
+--
+scmNumber = scmData:create{
+    scmType = "Number";
+}
+
+--
+-- Data type to hold a scheme list
+--
+scmList = scmData:create{
+    scmType = "List";
+    fromTable = function (table)
+        return scmList.fromTableIndex(table, 1)
+    end;
+    fromTableIndex = function (table, currentIndex)
+        if table[currentIndex] == nil then
+            return scmList:new()
+        elseif tostring(table[currentIndex]) == "." then
+            return table[currentIndex + 1]
+        else
+            return scmList:new{
+                car = table[currentIndex];
+                cdr = scmList.fromTableIndex(table, currentIndex + 1)
+            }
+        end
+    end;
+    fromArglist = function (args)
+        return scmList.fromTableIndex(args.value, args.currentIndex)
+    end;
+    itemsAsString = function (self)
+        if self.value == nil then
+            return ""
+        end
+        local car = self.value.car
+        local cdr = self.value.cdr
+        if cdr.scmType ~= "List" then
+            return tostring(car) .. " . " .. tostring(cdr)
+        elseif cdr.value == nil then
+            return tostring(car)
+        else
+            return tostring(car) .. " " .. cdr:itemsAsString()
+        end
+    end;
+    selfAsString = function (self)
+        if self.value == nil then
+            return "scmList:new()"
+        end
+        return "scmList:new{\ncar = " .. self.value.car:selfAsString()
+        .. ";\ncdr = " .. self.value.cdr:selfAsString() .. "}"
+    end;
+    valueAsString = function (self)
+        return "(" .. self:itemsAsString() .. ")"
+    end;
+}
+
+--
+-- Data type to hold a scheme vector
+--
+scmVector = scmData:create{
+    scmType = "Vector";
+    itemsAsString = function (self)
+        local result = ""
+        for _, v in ipairs(self.value) do
+            result = result .. tostring(v) .. " "
+        end
+        if result ~= "" then
+            result = string.sub(result, 1, -2)
+        end
+        return result
+    end;
+    valueAsString = function (self)
+        return "#(" .. self:itemsAsString() .. ")"
+    end;
+}
+
+--
+-- Data type to hold a scheme bytevector
+--
+scmBytevector = scmVector:create{
+    scmType = "Bytevector";
+    valueAsString = function (self)
+        return "#vu8(" .. self:itemsAsString() .. ")"
+    end;
+}
+--
+-- SCHEME TO LUA TRANSLATOR
+-- Preamble File 2
+-- This file contains the lua implementation of the scheme functions
+--
+
+--
+-- BEGIN SCHEME FUNCTIONS
+--
+
+function s2l_quote(obj)
+    return obj
+end
+
+function s2l_cons(obj1, obj2)
+    return scmList:new{car = obj1; cdr = obj2}
+end
+
+function s2l_car(pair)
+    return pair.value.car
+end
+
+function s2l_cdr(pair)
+    return pair.value.cdr
+end
+
+function s2l_list(...)
+    return scmList.fromTable{...}
+end
+
+function s2l_length(list)
+    local result = 0
+    while not s2l_null(list).value do
+        result = result + 1
+        list = s2l_cdr(list)
+    end
+    return scmNumber:new(result)
+end
+
+function s2l_filter(proc, list)
+    if s2l_null(list).value then
+        return scmList:new()
+    elseif proc(s2l_car(list)).value then
+        return s2l_cons(s2l_car(list), s2l_filter(proc, s2l_cdr(list)))
+    else
+        return s2l_filter(proc, s2l_cdr(list))
+    end
+end
+
+function s2l_display(obj)
+    io.write(tostring(obj))
+end
+
+function s2l_newline()
+    io.write("\n")
+end
+
+function s2l_arithmeticPlus(...)
+    local result = 0
+    for _, item in ipairs{...} do
+        result = result + item.value
+    end
+    return scmNumber:new(result)
+end
+
+function s2l_arithmeticMinus(a, b)
+    return scmNumber:new(a.value - b.value)
+end
+
+function s2l_arithmeticMultiply(...)
+    local result = 1
+    for _, item in ipairs{...} do
+        result = result * item.value
+    end
+    return scmNumber:new(result)
+end
+
+function s2l_arithmeticDivide(a, b)
+    return scmNumber:new(a.value / b.value)
+end
+
+function s2l_lessThan(n1, n2)
+    return scmBoolean:new(n1.value < n2.value)
+end
+
+function s2l_lessThanOrEqual(n1, n2)
+    return scmBoolean:new(n1.value <= n2.value)
+end
+
+function s2l_equals(n1, n2)
+    return scmBoolean:new(n1.value == n2.value)
+end
+
+function s2l_greaterThan(n1, n2)
+    return scmBoolean:new(n1.value > n2.value)
+end
+
+function s2l_greaterThanOrEqual(n1, n2)
+    return scmBoolean:new(n1.value >= n2.value)
+end
+
+-- Short circuit
+function s2l_and(...)
+    local result = scmBoolean:new(true)
+    for _, f in ipairs{...} do
+        local item = f()
+        if item.value == false then
+            return scmBoolean:new(false)
+        else
+            result = item
+        end
+    end
+    return result
+end
+
+-- Short circuit
+function s2l_or(...)
+    for _, f in ipairs{...} do
+        local item = f()
+        if item.value then
+            return item
+        end
+    end
+    return scmBoolean:new(false)
+end
+
+function s2l_not(obj)
+    if obj.value == false then
+        return scmBoolean:new(true)
+    end
+    return scmBoolean:new(false)
+end
+
+function s2l_pair(obj)
+    return scmBoolean:new(obj.scmType == "List" and obj.value ~= nil)
+end
+
+function s2l_boolean(obj)
+    return scmBoolean:new(obj.scmType == "Boolean")
+end
+
+function s2l_null(obj)
+    return scmBoolean:new(obj.scmType == "List" and obj.value == nil)
+end
+
+function s2l_number(obj)
+    return scmBoolean:new(obj.scmType == "Number")
+end
+
+function s2l_integer(obj)
+    return scmBoolean:new(obj.scmType == "Number" and obj.value % 1 == 0)
+end
+
+function s2l_exit()
+    return nil
+end
+
+--
+-- END SCHEME FUNCTIONS
+--
+IsInteger = (function (x)
+return s2l_integer(x)
+end)
+Last = (function (l)
+return (function ()
+if s2l_null(s2l_cdr(l)).value then
+return s2l_car(l)
+else
+return Last(s2l_cdr(l))
+end end)()
+
+end)
+Range = (function (lo, hi)
+return (function ()
+if s2l_greaterThan(lo, hi).value then
+return scmList:new()
+else
+return s2l_cons(lo, Range(s2l_arithmeticPlus(lo, scmNumber:new(1)), hi))
+end end)()
+
+end)
+Count = (function (x, l)
+return (function ()
+if s2l_null(l).value then
+return scmNumber:new(0)
+elseif s2l_equals(x, s2l_car(l)).value then
+return s2l_arithmeticPlus(scmNumber:new(1), Count(x, s2l_cdr(l)))
+else
+return Count(x, s2l_cdr(l))
+end end)()
+
+end)
+Evens = (function (l)
+return (function ()
+if s2l_null(l).value then
+return scmList:new()
+elseif s2l_integer(s2l_arithmeticDivide(s2l_car(l), scmNumber:new(2))).value
+then
+return s2l_cons(s2l_car(l), Evens(s2l_cdr(l)))
+else
+return Evens(s2l_cdr(l))
+end end)()
+
+end)
+Take = (function (n, l)
+return (function ()
+if s2l_or((function () return s2l_null(l) end), (function () return
+s2l_lessThanOrEqual(n, scmNumber:new(0)) end)).value then
+return scmList:new()
+else
+return s2l_cons(s2l_car(l), Take(s2l_arithmeticMinus(n, scmNumber:new(1)),
+s2l_cdr(l)))
+end end)()
+
+end)
+Drop = (function (n, l)
+return (function ()
+if s2l_or((function () return s2l_null(l) end), (function () return
+s2l_lessThanOrEqual(n, scmNumber:new(0)) end)).value then
+return l
+else
+return Drop(s2l_arithmeticMinus(n, scmNumber:new(1)), s2l_cdr(l))
+end end)()
+
+end)
+AppendLists = (function (l1, l2)
+return (function ()
+if s2l_null(l2).value then
+return l1
+elseif s2l_null(l1).value then
+return l2
+else
+return s2l_cons(s2l_car(l1), AppendLists(s2l_cdr(l1), l2))
+end end)()
+
+end)
+Any = (function (p, l)
+return s2l_and((function () return s2l_not(s2l_null(l)) end), (function ()
+return s2l_or((function () return p(s2l_car(l)) end), (function () return Any(p,
+s2l_cdr(l)) end)) end))
+end)
+All = (function (p, l)
+return s2l_or((function () return s2l_null(l) end), (function () return
+s2l_and((function () return p(s2l_car(l)) end), (function () return All(p,
+s2l_cdr(l)) end)) end))
+end)
+Filter = (function (p, l)
+return (function ()
+if s2l_null(l).value then
+return scmList:new()
+elseif p(s2l_car(l)).value then
+return s2l_cons(s2l_car(l), Filter(p, s2l_cdr(l)))
+else
+return Filter(p, s2l_cdr(l))
+end end)()
+
+end)
+Frequencies = (function (l)
+return (function ()
+if s2l_null(l).value then
+return scmList:new()
+else
+return s2l_cons(s2l_cons(s2l_car(l), s2l_list(Count(s2l_car(l), l))),
+Frequencies(Filter((function (x)
+return s2l_not(s2l_equals(x, s2l_car(l)))
+end), l)))
+end end)()
+
+end)
+Compose = (function (l)
+return (function ()
+if s2l_null(l).value then
+return (function (x)
+return x
+end)
+elseif s2l_null(s2l_cdr(l)).value then
+return s2l_car(l)
+else
+return (function (x)
+return s2l_car(l)(Compose(s2l_cdr(l))(x))
+end)
+end end)()
+
+end)
+Merge = (function (l1, l2)
+return (function ()
+if s2l_null(l2).value then
+return l1
+elseif s2l_null(l1).value then
+return l2
+elseif s2l_lessThan(s2l_car(l1), s2l_car(l2)).value then
+return s2l_cons(s2l_car(l1), Merge(s2l_cdr(l1), l2))
+else
+return s2l_cons(s2l_car(l2), Merge(l1, s2l_cdr(l2)))
+end end)()
+
+end)
+MergeSort = (function (l)
+return (function ()
+if s2l_or((function () return s2l_null(l) end), (function () return
+s2l_null(s2l_cdr(l)) end)).value then
+return l
+else
+return Merge(MergeSort(Take(s2l_arithmeticDivide(s2l_length(l),
+scmNumber:new(2)), l)), MergeSort(Drop(s2l_arithmeticDivide(s2l_length(l),
+scmNumber:new(2)), l)))
+end end)()
+
+end)
+QuickSort = (function (l)
+return (function ()
+if s2l_or((function () return s2l_null(l) end), (function () return
+s2l_null(s2l_cdr(l)) end)).value then
+return l
+else
+return AppendLists(QuickSort(s2l_filter((function (n)
+return s2l_lessThan(n, s2l_car(l))
+end), l)), AppendLists(s2l_filter((function (n)
+return s2l_equals(n, s2l_car(l))
+end), l), QuickSort(s2l_filter((function (n)
+return s2l_greaterThan(n, s2l_car(l))
+end), l))))
+end end)()
+
+end)
+s2l_display(scmString:new("(Last '(4 3 5 3 5 5 2)): "))
+s2l_display(Last(scmList:new{
+car = scmNumber:new(4);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}}}}))
+s2l_newline()
+s2l_display(scmString:new("(Count 5 '(4 3 5 3 5 5 2)): "))
+s2l_display(Count(scmNumber:new(5), scmList:new{
+car = scmNumber:new(4);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}}}}))
+s2l_newline()
+s2l_display(scmString:new("(Evens (Range 1 10)): "))
+s2l_display(Evens(Range(scmNumber:new(1), scmNumber:new(10))))
+s2l_newline()
+s2l_display(scmString:new("(Take 3 (Range 1 10)): "))
+s2l_display(Take(scmNumber:new(3), Range(scmNumber:new(1), scmNumber:new(10))))
+s2l_newline()
+s2l_display(scmString:new("(Drop 3 (Range 1 10)): "))
+s2l_display(Drop(scmNumber:new(3), Range(scmNumber:new(1), scmNumber:new(10))))
+s2l_newline()
+s2l_display(scmString:new("(AppendLists (Range 4 9) '(2 2 1 2)): "))
+s2l_display(AppendLists(Range(scmNumber:new(4), scmNumber:new(9)), scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}))
+s2l_newline()
+s2l_display(scmString:new("(Any (lambda (x) (> x 5)) '(2 2 1 2)): "))
+s2l_display(Any((function (x)
+return s2l_greaterThan(x, scmNumber:new(5))
+end), scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}))
+s2l_newline()
+s2l_display(scmString:new("(Any (lambda (x) (> x 1)) '(2 2 1 2)): "))
+s2l_display(Any((function (x)
+return s2l_greaterThan(x, scmNumber:new(1))
+end), scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}))
+s2l_newline()
+s2l_display(scmString:new("(All (lambda (x) (> x 5)) '(2 2 1 2)): "))
+s2l_display(All((function (x)
+return s2l_greaterThan(x, scmNumber:new(5))
+end), scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}))
+s2l_newline()
+s2l_display(scmString:new("(All (lambda (x) (> x 0)) '(2 2 1 2)): "))
+s2l_display(All((function (x)
+return s2l_greaterThan(x, scmNumber:new(0))
+end), scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}))
+s2l_newline()
+s2l_display(scmString:new("(Filter (lambda (x) (>= x 2)) '(2 2 1 2)): "))
+s2l_display(Filter((function (x)
+return s2l_greaterThanOrEqual(x, scmNumber:new(2))
+end), scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}))
+s2l_newline()
+s2l_display(scmString:new("(Frequencies '(1 4 3 5 3 5 5 2)): "))
+s2l_display(Frequencies(scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(4);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}}}}}))
+s2l_newline()
+s2l_display(scmString:new("(MergeSort '(1 4 3 5 3 5 5 2)): "))
+s2l_display(MergeSort(scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(4);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}}}}}))
+s2l_newline()
+s2l_display(scmString:new("(MergeSort '(1 4 3 5 5 5 2)): "))
+s2l_display(MergeSort(scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(4);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}}}}))
+s2l_newline()
+s2l_display(scmString:new("(QuickSort '(1 4 3 5 3 5 5 2)): "))
+s2l_display(QuickSort(scmList:new{
+car = scmNumber:new(1);
+cdr = scmList:new{
+car = scmNumber:new(4);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(3);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(5);
+cdr = scmList:new{
+car = scmNumber:new(2);
+cdr = scmList:new()}}}}}}}}))
+s2l_newline()
+s2l_exit()
+$
+end{verbatim}
+\normalsize
+
+\section{Final Output}
+
+\subsection{Output From Native Scheme Interpreter}
+\scriptsize
+\begin{verbatim}
+$ scm defs.scm deftest.scm
+(Last '(4 3 5 3 5 5 2)): 2
+(Count 5 '(4 3 5 3 5 5 2)): 3
+(Evens (Range 1 10)): (2 4 6 8 10)
+(Take 3 (Range 1 10)): (1 2 3)
+(Drop 3 (Range 1 10)): (4 5 6 7 8 9 10)
+(AppendLists (Range 4 9) '(2 2 1 2)): (4 5 6 7 8 9 2 2 1 2)
+(Any (lambda (x) (> x 5)) '(2 2 1 2)): #f
+(Any (lambda (x) (> x 1)) '(2 2 1 2)): #t
+(All (lambda (x) (> x 5)) '(2 2 1 2)): #f
+(All (lambda (x) (> x 0)) '(2 2 1 2)): #t
+(Filter (lambda (x) (>= x 2)) '(2 2 1 2)): (2 2 2)
+(Frequencies '(1 4 3 5 3 5 5 2)): ((1 1) (4 1) (3 2) (5 3) (2 1))
+(MergeSort '(1 4 3 5 3 5 5 2)): (1 2 3 3 4 5 5 5)
+(MergeSort '(1 4 3 5 5 5 2)): (1 2 3 4 5 5 5)
+(QuickSort '(1 4 3 5 3 5 5 2)): (1 2 3 3 4 5 5 5)
+$ 
+\end{verbatim}
+\normalsize
+
+\subsection{Output From Translated Lua Program}
+\scriptsize
+\begin{verbatim}
+$ ./scheme2lua defs.scm deftest.scm | lua
+(Last '(4 3 5 3 5 5 2)): 2
+(Count 5 '(4 3 5 3 5 5 2)): 3
+(Evens (Range 1 10)): (2 4 6 8 10)
+(Take 3 (Range 1 10)): (1 2 3)
+(Drop 3 (Range 1 10)): (4 5 6 7 8 9 10)
+(AppendLists (Range 4 9) '(2 2 1 2)): (4 5 6 7 8 9 2 2 1 2)
+(Any (lambda (x) (> x 5)) '(2 2 1 2)): #f
+(Any (lambda (x) (> x 1)) '(2 2 1 2)): #t
+(All (lambda (x) (> x 5)) '(2 2 1 2)): #f
+(All (lambda (x) (> x 0)) '(2 2 1 2)): #t
+(Filter (lambda (x) (>= x 2)) '(2 2 1 2)): (2 2 2)
+(Frequencies '(1 4 3 5 3 5 5 2)): ((1 1) (4 1) (3 2) (5 3) (2 1))
+(MergeSort '(1 4 3 5 3 5 5 2)): (1 2 3 3 4 5 5 5)
+(MergeSort '(1 4 3 5 5 5 2)): (1 2 3 4 5 5 5)
+(QuickSort '(1 4 3 5 3 5 5 2)): (1 2 3 3 4 5 5 5)
+$ 
+\end{verbatim}
+\normalsize
