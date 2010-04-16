@@ -206,33 +206,10 @@ This indicates that, aside from the previously mentioned issue with characters, 
 
 \subsubsection{Lists}
 
-Lists are the primary data type in Scheme, and there is a duality in the
-representation of list data and the core syntax of a Scheme program.
-
-\begin{quotation}
-``The pair, or cons cell, is the most fundamental of Scheme's structured object
-types. The most common use for pairs is to build lists, which are ordered
-sequences of pairs linked one to the next by the cdr field. The elements of the
-list occupy the car fields of the pairs. The cdr of the last pair in a proper
-list is the empty list, (); the cdr of the last pair in an improper list can be
-anything other than ().''~\cite[Sec~6.4]{tspl}
-\end{quotation}
-
-
-Similarly, Lua has a single, but very flexible data structure called a
-\emph{table}, which amounts to an associative array, but with added features
-such as meta-methods, allowing it to do numerous things such as object-oriented
-programming.
-\begin{quotation}
-``Tables are the main (in fact, the only) data structuring mechanism in Lua, and
-a powerful one. We use tables to represent ordinary arrays, symbol tables, sets,
-records, queues, and other data structures, in a simple, uniform, and efficient
-way''~\cite[p.14]{luabook}.
-\end{quotation}
-
-The power of tables allows many things to be accomplished, and is more than
-capable of representing Scheme data lists.
-
+As mentioned in Section~\ref{sec:listandtable}, lists in Scheme and tables in
+Lua would provide a natural translation. Given how powerful tables are, there
+are a number of possible options for representation, from a flat array to a
+tree-like one that preserves the original pair structure.
 
 \subsubsection{Vectors and Bytevectors}
 
@@ -299,18 +276,22 @@ expression-based form of Scheme.
 Scheme supports defining new functions using \texttt{lambda}, as in Church's
 lambda calculus. Lua does so in a C-like style with \texttt{function}. Both
 treat functions as first-class values that are inherently anonymous, allowing
-great flexibility in their use. In general, Scheme procedures evaluate the
-arguments before calling the function, but some special syntaxes, such as
-\texttt{and} and \texttt{or}, do not. This could present a problem for the
-translator when passing arguments directly to Lua functions, since Lua always
-evaluates the function arguments in advance of calling the function.
+great flexibility in their use.
 
 \subsection{Continuations}
 
 Continuations are a feature of Scheme that do not have an exact parallel in Lua.
+\begin{quotation}
+``Continuations in Scheme are procedures that represent the remainder of a
+computation from a given point in the computation.''\ldots``Continuations allow
+the implementation of nonlocal exits, backtracking, coroutines, and
+multitasking.''~\cite[Sec~5.6]{tspl}
+\end{quotation}
 
-``One-shot'' continuations could be implemented using a Lua feature called
-coroutines.
+Lua does have support for coroutines, and though continuations can implement
+coroutines, the inverse is not completely true. According to one of Lua's
+creators, ``One-shot'' continuations, that is continuations that can be called
+only once, could be implemented using Lua coroutines~\cite[Slide~14]{luaslides}.
 
 \subsection{Syntax Extension}
 
@@ -331,17 +312,78 @@ interesting prospect.
 
 \section{Design 2}
 
-The above considerations naturally had an influence on the design, with the full
-extent of their implications taking some time to become apparent. As the
-project progressed, and as more functionality was added to the translator, a
-number of issues prompted a rethink of some parts of the original design.
+The above observations naturally had an influence on the design, with the full
+extent of their implications taking some time to become apparent. As the project
+progressed, and as more functionality was added to the translator, a number of
+problems presented themselves, and a trade-off began to emerge between
+complexity in the translator and the complexity of the output. In effect, making
+the output as simple and efficient as possible would mean a large degree of
+complexity in the translator, characterised by constant type checking,
+monitoring of context, and applying rules. This prompted a rethink of some parts
+of the original design of the translator.
 
-\subsection{Difficulties With First Approach}
+\subsection{Data Problem}
 
-Number representation, data problems, context problems, identifier mappings,
-equality, function arguments.
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{overview.png}
+\caption{A conceptual overview of the stages of translation}
+\label{fig:overview}
+\end{figure}
 
-Here is a very basic example of the problem presented by the context:
+This stemmed from the fact that some Lua data types are unable to encompass
+their Scheme equivalents. Most notably, the Scheme number is far more intricate
+than the Lua number. The lack of a character type in Lua also presented a
+problem. In addition, when running the translated program, the output did not
+match the Scheme program, due to the data being in native Lua form.
+
+Prompted by the data problem, a significant redesign was undertaken. It involved
+using tables to create wrappers for all Scheme data in the translation. This
+sacrificed a degree of minimalism for a structured, uniform way of representing
+data. It also allowed data to have any desired output representation.
+Figure~\ref{fig:overview} shows the main concept in pictorial form. The source
+file would be scanned and parsed as before. However, instead of directly
+outputting Lua source, the parser would represent the Scheme program as a set of
+data objects, the evaluation of which would cause them to output themselves as
+Lua code. Furthermore, every translation would be preceded by a preamble
+containing definitions of the data objects, and a library of supported Scheme
+operations.
+
+\subsection{More Difficulties}
+
+The following problems were addressed when they arose at various stages in the
+development, but did not require as extensive a redesign as the data problem.
+
+\subsubsection{Identifier Names}\label{sec:identifiers}
+
+It was clear from an early stage that Scheme identifiers could not be directly
+translated, since they can contain characters that are invalid in Lua
+identifiers. One possible solution was to disregard the identifiers entirely and
+replace them with incrementally or randomly-generated Lua identifiers. Though
+short and simple, this would have adversely affected the readability of the
+translation. Instead, a table was used to map the identifiers of supported
+Scheme operations to Lua ones. There remains the issue of user-defined
+identifiers, leaving this problem partially solved.
+
+\subsubsection{Function Arguments}
+
+Scheme generally evaluates a procedure's arguments in their entirety before
+application. But some special syntaxes, such as \texttt{and} and \texttt{or},
+rely on delayed evaluation of arguments. This presented a problem for the
+translator when passing arguments, since Lua always evaluates arguments in
+advance.
+
+It was possible to artificially delay the evaluation using a \emph{thunk}, which
+involves wrapping each argument in a function, to be called if and when the
+argument is needed. This is a standard solution for this kind of problem, and
+turned out to be very neat and easy to incorporate.
+
+\subsubsection{Context Problems}
+
+These occurred when the correct translation for an expression depended on the
+containing or neighbouring expressions. In the simple, minimal approach, this
+caused some difficulties. Here is a basic example of the problem presented by
+the context:
 \begin{framed}
 Take the Scheme expression \texttt{(+ 4 5)}. According to the first approach,
 this should be translated as \texttt{4 + 5}. However, if this was a
@@ -359,72 +401,54 @@ applied to every operand of every arithmetic expression---making the translation
 of the above \texttt{(3) * ((4) + (5))}. This is quite difficult to read for
 such a small expression. A similar technique had to be applied to functions.
 
-It was possible to delay the evaluation of function arguments using a
-\emph{thunk}, which involves wrapping the argument in a function, to be called
-if and only if the argument is needed.
-
-However it soon became apparent that this approach would quickly become
-unwieldy, as the range of various contexts in which an expression could appear
-often meant the optimal translation needed to be adjusted slightly. An example
-of this is\ldots
-
-A trade-off emerged between complexity in the translator and the complexity of
-the output. In effect, making the output as simple and efficient as
-possible would mean a large degree of complexity in the translator,
-characterised by constant type checking, monitoring of context, and applying
-rules.
-
-\subsection{Second Approach}
-
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{overview.png}
-\caption{A conceptual overview of the stages of translation}
-\label{fig:overview}
-\end{figure}
-
-This approach was more structured in its implementation, and it attempted to
-address some of the problems described above. Figure~\ref{fig:overview} shows
-the main concept in pictorial form. The source file would be scanned and parsed
-as before. However, instead of directly outputting Lua source, the parser would
-represent the Scheme program as a set of data objects, the evaluation of which
-would cause them to output themselves as Lua code. Furthermore, every
-translation would be preceded by a preamble containing definitions of the data
-objects and a library of supported Scheme operations.
-
 
 \section{Implementation}
 
 The implementation of the translator was incremental, and subject to the design
-difficulties described above. The large extent of the redesign hampered progress
-on new features, and the initial priority was on simple arithmetic and basic
-control operations. This was quite disappointing, but enough was completed to
+difficulties described above. The magnitude of the redesign hampered progress on
+new features, and the initial priority needed to be on simple operations and
+control structures. This was quite disappointing, but enough was completed to
 successfully translate a range of useful Scheme programs, and a good platform is
-now there for the more complex and interesting features. Here is a list describing what has been implemented:
+now there for the more complex and interesting features. Here is a list
+describing the major features that have been implemented:
+\begin{itemize}
+\item All Scheme data types were implemented in the redesigned model, though the
+Scheme number syntax is not yet supported in full;
+\item A number of fundamental operations like assignment, arithmetic and
+comparison, as well as some type predicates, were included;
+\item Boolean operations were supported, including those that require delayed
+evaluation of arguments;
+\item The branch instructions \texttt{if} and \texttt{cond} are fully supported;
+\item Looping is supported using the named \texttt{let} expression;
+\item The translator has full support for \texttt{lambda} expressions, including
+the different syntaxes for formal parameters. Recursive user-defined functions
+are also supported. Furthermore, though this has not been proven, it appears
+that tail-recursive Scheme expressions when translated will remain
+tail-recursive in Lua.
+\end{itemize}
 
-\begin{description}
-\item[Data Types] Support for vectors and bytevectors was included, but they
-were not tested to any great degree.
-\item[Assignment, Arithmetic and Comparison] t
-\item[Functions] including delayed evaluation of arguments
-\item[Branching] t
-\item[Looping] t
-\end{description}
+\subsection{Outstanding Features}
 
-The following is the list of features yet to be implemented, in order of their
-priority. The priority was determined by a combination of how interesting the
-feature is, and what would be involved in the implementation.
+The following is the list of features yet to be implemented:
 \begin{description}
-\item[Continuations] 
-\item[Syntax Extension] 
-\item[The Scheme Number Syntax] would not be too difficult with the
+\item[User-Defined Identifiers] were not included in the solution for standard
+Scheme identifiers, and would need to be similarly mapped or substituted as
+discussed in Section~\ref{sec:identifiers}
+\item[Continuations] are a feature of Scheme that would be a great addition to
+the translator. A considerable amount of preliminary study has been done on
+this, but an implementation is not forthcoming at this time.
+\item[Syntax Extension] would effectively require the translator to be able to
+enhance its own capabilities while translating. As of yet, it has not been
+determined if it would be possible to do this without adding to its own source
+code in the process.
+\item[The Scheme Number Syntax] would not be too difficult with the current
 structure in place. It would involve expanding the \texttt{scmNumber} data type
 to include the necessary attributes and operations.
 \item[Equality] could be implemented trivially in an object-oriented manner
-by adding the various equality methods to the data types.
+by adding implementations of the various equality methods to the data types.
 \item[Full coverage of Scheme procedures] would be a case of adding a function
-to the library for every procedure. Implementing syntax extension could
-facilitate this in an interesting way.
+to the library for every standard Scheme procedure. Implementing syntax
+extension could potentially facilitate this in an interesting way.
 \end{description}
 
 
@@ -521,7 +545,7 @@ needed by the translated source code.
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{scmDataUML.pdf}
-\caption{The structure of the intermediate data types}
+\caption{The structure of the preamble data types}
 \label{fig:scmDataUML}
 \end{figure}
 

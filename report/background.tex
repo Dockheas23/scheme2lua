@@ -16,23 +16,36 @@ all the nuances in programming style that accompany them.
 
 \section{Why A Scheme To Lua Translator?}
 
-Aside from the immediate answer, \emph{``Why not?''}, here are some reasons for
-doing a project like this:
-\begin{itemize}
-\item XXX
-\end{itemize}
-The objective of this project is to get to the very core of understanding
-computer languages. In some ways, the topic transcends Computer Science, and
-enters the realm of all language and communication in general, so any
-personal revelations from this would also be beneficial.
+Aside from the immediate answer, \emph{``Why not?''}, there are compelling
+reasons for doing a project like this. Having to compare and contrast two
+languages in the way that is necessary, has the potential to be far more
+revealing than knowing either or both of them in isolation. It forces them to be
+viewed outside the context of their traditional domains, and as such, fully
+exposes their strengths and weaknesses.
+
+Given the languages in question, it also compares two quite different syntaxes,
+showing the paradigms that each tends towards, the boundaries of possible
+expression, and conceivably the reasons why. Due to the compactness of their
+cores, this can be done in an environment that is not overwhelmed by voluminous
+manuals and library APIs.
+
+The true objective of this project is to get to the very core of understanding
+computer languages. As an aside, the topic transcends Computer Science to a
+certain extent, entering the realm of all language and communication in general,
+and any personal revelations from this would also be beneficial.
 
 \section{Related Work}
 
-There is no obvious evidence of other work out there precisely like this, but
-other source-to-source translators exist between different languages. It also
-has a certain degree of similarity to any compiler or interpreter. There was
-also a project in 2006, by a programmer named David Bergman, to make an embedded
-Lisp interpreter, written in Lua~\cite{lualisp}. \\[5mm]
+There is no obvious evidence of another Scheme To Lua translator in existence.
+However:
+\begin{itemize}
+\item Other source-to-source translators exist between different languages.
+\item The translator has a certain degree of similarity to any compiler or
+interpreter;
+\item There was also a project in 2006, by a programmer named David
+Bergman, to make an embedded Lisp interpreter, written in Lua~\cite{lualisp}.
+\\[5mm]
+\end{itemize}
 
 \hrule \hfill \\[5mm]
 
@@ -144,4 +157,29 @@ value.''\ldots ``Like Scheme, Lua has first-class functions with lexical
 scoping.''~\cite[Sec~2]{evolua}
 \end{quotation}
 
-Describe parallel regarding single data structure.
+\label{sec:listandtable}
+Another parallel is the fact that both languages are based around a single data
+structure. In Scheme, this is the \emph{list}, and it is integral to the core
+syntax of all Scheme programs. Lists are composed of a series of pairs, as in a
+generic linked list data structure:
+\begin{quotation}
+``The pair, or cons cell, is the most fundamental of Scheme's structured object
+types. The most common use for pairs is to build lists, which are ordered
+sequences of pairs linked one to the next by the cdr field. The elements of the
+list occupy the car fields of the pairs. The cdr of the last pair in a proper
+list is the empty list, (); the cdr of the last pair in an improper list can be
+anything other than ().''~\cite[Sec~6.4]{tspl}
+\end{quotation}
+
+In Lua, it is the \emph{table}, a flexible map-like data structure. The power of
+tables allows many things to be accomplished, including a kind of
+object-oriented programming: 
+\begin{quotation}
+``Tables are the main (in fact, the only) data structuring mechanism in Lua, and
+a powerful one. We use tables to represent ordinary arrays, symbol tables, sets,
+records, queues, and other data structures, in a simple, uniform, and efficient
+way''~\cite[p.14]{luabook}.
+\end{quotation}
+
+This prominence of a single data structure in both languages could be a useful
+factor in building the translator.

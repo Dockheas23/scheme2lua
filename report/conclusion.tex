@@ -1,17 +1,20 @@
-\section{Pitfalls}
+Creating wrappers for the Scheme data was a mistake, both in terms of the time
+it consumed in development and testing, and the likely effect it had on
+performance. It simplified the translator at the expense of the size,
+readability and complexity of the translated program. Priority should have been
+given to the output over the translator, and more effort should have been made
+to find a simple solution.
 
 
 \section{Further Work}
 
-\subsection{Increasing Language Coverage}
+\begin{itemize}
+\item Continuations
+\item Syntax Extension
+\item File I/O
+\item Full coverage of the Scheme language
+\end{itemize}
 
-\subsection{Features}
-
-Continuations
-
-Syntax Extension
-
-File I/O
 
 \section{A Final Word}
 
