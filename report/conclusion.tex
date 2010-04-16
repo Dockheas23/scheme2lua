@@ -1,40 +1,51 @@
-Creating wrappers for the Scheme data was a mistake, both in terms of the time
-it consumed in development and testing, and the likely effect it had on
-performance. It simplified the translator at the expense of the size,
-readability and complexity of the translated program. Priority should have been
-given to the output over the translator, and more effort should have been made
-to find a simple solution.
+As stated in the beginning, the underlying aim of this project was to explore
+two languages, using a translator as the means. The revelations from this
+exploration were many, and in a number of areas, from the intricacies of
+programming syntax to the challenges of managing a project of several months in
+duration.
 
+\section{Learning Outcomes}
+
+From a design perspective, the major lesson was the compromise that needed to
+be reached between the translator itself and its output, and the cost of a
+change in direction. In hindsight, making a large design change during the
+project was probably a mistake, both in terms of the time it consumed in
+development and testing, and the likely effect that the result had on
+performance. It simplified the translator at the expense of the size,
+readability and complexity of the translated program. More priority should have
+been given to the translator output, and a less radical solution should have
+been found.
+
+In terms of its real purpose, the project provided a unique and captivating view
+of Scheme and Lua, and the relationships between them. It exposed the
+interesting melange of programming paradigms and styles they are capable of. It
+revealed what effect syntax has on what can be programmed, and in what way. And
+it also gave a deeper understanding of programming languages in general, that
+can be applied to all future interactions with all languages.
 
 \section{Further Work}
 
-\begin{itemize}
+As already described in Section~\ref{sec:outstandingfeatures}, these are the
+main areas for further enhancement of the translator. Here they are ordered
+using a subjective scale, beginning with the ``most interesting'':
+\begin{enumerate}
 \item Continuations
 \item Syntax Extension
-\item File I/O
-\item Full coverage of the Scheme language
-\end{itemize}
+\item The Scheme Number Syntax
+\item User-Defined Identifiers
+\item Equality
+\item Full coverage of Scheme procedures
+\end{enumerate}
 
 
 \section{A Final Word}
 
-This project was intensely enjoyable and challenging, encapsulating a spectrum
-of emotions from frustration to euphoria. It was an unrivaled opportunity for me
-to let loose and have fun with computer languages, learning two new ones along
-the way; but knowing how much this project means to Dr.\ Manning, I also felt a
-responsibility to do it justice. If I had my time again I'd do some things
-differently, and that is the measure of a great learning experience.
-
-I would like to finish by acknowledging those who helped with the project:
-\begin{itemize}
-\item Thanks to my girlfriend, Shirley, and my mother, Mary, for proof-reading
-and endless cups of Earl Grey.
-\item Thanks to James Doherty and the System Administrators in the Computer
-Science Department for the constant advice, backup and support throughout the
-project. Fortunately I didn't have occasion to avail of it very often, but I
-always knew it was there if I needed it.
-\item Thanks to Professor Provan, and all the others who came to see my project
-on open day.
-\item And finally, many thanks to Dr.\ Manning, who provided inspiration,
-guidance, great advice, and a truly fascinating project.
-\end{itemize}
+Creating the translator was intensely enjoyable and challenging. It was an
+unrivalled opportunity for me to have fun with computer languages, learning two
+great new ones along the way; but knowing that this project was of particular
+interest to the supervisor, I also really wanted to do it justice. The project
+has developed and shaped my perspective on Computer Science immeasurably, and in
+the most gratifying way. If I had my time again I'd do a number of things
+differently, and that is the measure of a great learning experience. I'd like to
+thank Dr.\ Manning for providing inspiration, guidance, great advice, and an
+utterly fascinating project.

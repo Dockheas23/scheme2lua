@@ -1,3 +1,7 @@
+The translator was the vehicle for focusing the investigation. As such, it made
+software development a necessary part, with the analysis and design that goes
+with it. 
+
 \section{Requirements}
 
 Being a project that was experimental in style, the requirements were not
@@ -202,7 +206,7 @@ code, including embedded zeros. This means that you can store any binary data
 into a string''~\cite[p.11]{luabook}.
 \end{quotation}
 
-This indicates that, aside from the previously mentioned issue with characters, strings should be transferrable without much trouble.
+This indicates that, aside from the previously mentioned issue with characters, strings should be transferable without much trouble.
 
 \subsubsection{Lists}
 
@@ -427,16 +431,18 @@ that tail-recursive Scheme expressions when translated will remain
 tail-recursive in Lua.
 \end{itemize}
 
-\subsection{Outstanding Features}
+\subsection{Outstanding Features}\label{sec:outstandingfeatures}
 
 The following is the list of features yet to be implemented:
 \begin{description}
-\item[User-Defined Identifiers] were not included in the solution for standard
-Scheme identifiers, and would need to be similarly mapped or substituted as
-discussed in Section~\ref{sec:identifiers}
 \item[Continuations] are a feature of Scheme that would be a great addition to
 the translator. A considerable amount of preliminary study has been done on
 this, but an implementation is not forthcoming at this time.
+\item[Equality] could be implemented trivially in an object-oriented manner
+by adding implementations of the various equality methods to the data types.
+\item[Full coverage of Scheme procedures] would be a case of adding a function
+to the library for every standard Scheme procedure. Implementing syntax
+extension could potentially facilitate this in an interesting way.
 \item[Syntax Extension] would effectively require the translator to be able to
 enhance its own capabilities while translating. As of yet, it has not been
 determined if it would be possible to do this without adding to its own source
@@ -444,11 +450,9 @@ code in the process.
 \item[The Scheme Number Syntax] would not be too difficult with the current
 structure in place. It would involve expanding the \texttt{scmNumber} data type
 to include the necessary attributes and operations.
-\item[Equality] could be implemented trivially in an object-oriented manner
-by adding implementations of the various equality methods to the data types.
-\item[Full coverage of Scheme procedures] would be a case of adding a function
-to the library for every standard Scheme procedure. Implementing syntax
-extension could potentially facilitate this in an interesting way.
+\item[User-Defined Identifiers] were not included in the solution for standard
+Scheme identifiers, and would need to be similarly mapped or substituted as
+discussed in Section~\ref{sec:identifiers}
 \end{description}
 
 

@@ -179,9 +179,20 @@ Two prime number algorithms were used to test the relative performance of the
 translation against a native Scheme implementation. Also included is the result
 of running the translated Lua output using \texttt{luaJIT}, the Lua just-in-time
 compiler. The algorithms were intentionally na\"{i}ve, with the second being
-a more list-based variation.
+a more list-based variation. A comparison with a native Lua version of
+Algorithm 1 is also included.
+
+These tests were all conducted on the same computer, in the same environment,
+using the UNIX \texttt{time} utility. The real time value was taken and rounded
+to the nearest second to give the results below.
 
 \subsection{Algorithm 1}
+
+This algorithm generates the first $n$ prime numbers by checking every number in
+sequence, starting at 2, and outputting it if it is prime. The sequence stops
+when $n$ primes are output. To determine if a number, $k$, is prime, it attempts
+to divide $k$ by all numbers from $2$ to $k - 1$ in sequence. If none divide
+evenly, then $k$ is considered prime.
 
 \begin{framed}
 \begin{verbatim}
@@ -206,9 +217,10 @@ a more list-based variation.
           (else (prime (+ k 1))))))))
 
 (primes 5000)
-(exit)
 \end{verbatim}
 \end{framed}
+
+\subsubsection{Results}
 
 \begin{center}
 \begin{tabular}{|l|c|c|c|}
@@ -220,9 +232,23 @@ First 2000 Primes & 1:13 & 0:41 & 0:09 \\ \hline
 First 5000 Primes & 8:26 & 4:49 & 1:02 \\ \hline
 \end{tabular}
 \end{center}
+This test shows that the native Scheme interpreter, running the native Scheme
+code, is substantially faster than the translation, at an approximate ratio of
+$8:4:1$. What is interesting is the degree to which \texttt{luaJIT} is faster
+than \texttt{lua} on the same translated code.
+
+These results are probably to be expected, given that the design of the Scheme
+interpreter is likely optimised for the Scheme style of programming, in a way
+that the Lua interpreters would not be. Also, creating Scheme-like wrappers for
+the data in Lua may have nullified any speed advantages that native Lua might
+have had over Scheme.
 
 \subsection{Algorithm 2}
 
+This algorithm generates all prime numbers up to a number, $n$. It does this by
+filtering the predicate $isPrime$ over the list of all numbers from 1 to $n$.
+$isPrime$ uses the same method as the Algorithm 1 to determine if a number is
+prime.
 \begin{framed}
 \begin{verbatim}
 (define Range
@@ -249,9 +275,10 @@ First 5000 Primes & 8:26 & 4:49 & 1:02 \\ \hline
 
 (display (Filter isPrime (Range 2 20000)))
 (newline)
-(exit)
 \end{verbatim}
 \end{framed}
+
+\subsubsection{Results}
 
 \begin{center}
 \begin{tabular}{|l|c|c|c|}
@@ -262,3 +289,75 @@ Primes Up To 10000 & 0:37 & 0:16 & 0:03 \\ \hline
 Primes Up To 20000 & FAIL & 1:13 & FAIL \\ \hline
 \end{tabular}
 \end{center}
+The figures for the primes up to 10000 show a similar profile as before, but
+with the ratio now at around $12:5:1$. The failure of both \texttt{lua} and
+\texttt{scm} on the primes up to 20000 was an interesting and unexpected result.
+In the case of the \texttt{lua}, it was caused by a stack overflow---a
+consequence of trying to build the list of numbers from 1 to 20000. For
+\texttt{scm}, it was an unspecified segmentation fault, which could be due to
+similar over-consumption of memory, or a bug in the Scheme interpreter.
+\texttt{luaJIT} was able to complete the task without problems.
+
+\subsection{Native Lua}
+
+As a final comparison, the translated results were compared against a version of
+Algorithm 1 written in native Lua and run through the regular Lua interpreter.
+Here is the Lua program used:
+
+\begin{framed}
+\begin{verbatim}
+function primes(n)
+    local primecount = 1
+    local current = 2
+    repeat
+        if primecount > n then
+            print("\n")
+            break
+        elseif isPrime(current) then
+            print(primecount .. ": " .. current)
+            primecount = primecount + 1
+            current = current + 1
+        else
+            current = current + 1
+        end
+    until false
+end
+
+function isPrime(n)
+    if n < 2 then
+        return false
+    else
+        local k = 2
+        repeat
+            if n == k then
+                return true
+            elseif n % k == 0 then
+                return false
+            else
+                k = k + 1
+            end
+        until false
+    end
+end
+
+primes(5000)
+\end{verbatim}
+\end{framed}
+
+\subsubsection{Results}
+
+Adding the recorded times to the results from Algorithm 1 gives:
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+& lua & luaJIT & scm & lua (native) \\
+\hline
+First 1000 Primes & 0:16 & 0:09 & 0:02 & $<$0:01 \\ \hline
+First 2000 Primes & 1:13 & 0:41 & 0:09 & 0:01 \\ \hline
+First 5000 Primes & 8:26 & 4:49 & 1:02 & 0:07 \\ \hline
+\end{tabular}
+\end{center}
+This displays the staggering speed of Lua for code written specifically for it.
+It may not be an entirely fair comparison---the particulars of the algorithm
+had to differ slightly due to the difference between Scheme's and Lua's looping
+constructs---but the difference is surprising nonetheless.

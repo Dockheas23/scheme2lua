@@ -1,13 +1,18 @@
 function primes(n)
-    local i = 1
-    local k = 2
-    while i <= n do
-        if isPrime(k) then
-            print(i .. ": " .. k)
-            i = i + 1
+    local primecount = 1
+    local current = 2
+    repeat
+        if primecount > n then
+            print("\n")
+            break
+        elseif isPrime(current) then
+            print(primecount .. ": " .. current)
+            primecount = primecount + 1
+            current = current + 1
+        else
+            current = current + 1
         end
-        k = k + 1
-    end
+    until false
 end
 
 function isPrime(n)
@@ -15,14 +20,16 @@ function isPrime(n)
         return false
     else
         local k = 2
-        while k < n do
-            if n % k == 0 then
+        repeat
+            if n == k then
+                return true
+            elseif n % k == 0 then
                 return false
+            else
+                k = k + 1
             end
-            k = k + 1
-        end
-        return true
+        until false
     end
 end
 
-primes(2000)
+primes(5000)
