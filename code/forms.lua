@@ -163,7 +163,6 @@ specialArgs = {
 -- A table of the supported Scheme procedures
 --
 procedures = {
-    ["cond"] = "s2l_cond";
     ["quote"] = "s2l_quote";
 
     ["cons"] = "s2l_cons";
